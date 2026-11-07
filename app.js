@@ -2,18 +2,20 @@
 /*
   PGPR PICKS V12
   Discover, Shortlist, Decide
-  Replace your entire app.js with this script.
-  Requires existing index.html and places.js.
+
+  Complete app.js replacement.
+  Uses existing index.html and places.js.
+  No external JavaScript libraries required.
 */
 
 (() => {
   "use strict";
 
-  const $ = s => document.querySelector(s);
+  const $ = selector => document.querySelector(selector);
   const app = $("#app");
 
   if (!app) {
-    console.error("PGPR Picks requires #app");
+    console.error("PGPR Picks: Missing app element.");
     return;
   }
 
@@ -23,12 +25,13 @@
       ? PLACES
       : [];
 
-  const KEY = "pgpr-picks-saved";
+  const STORAGE_KEY = "pgpr-picks-saved";
 
   let saved;
+
   try {
     saved = new Set(JSON.parse(
-      localStorage.getItem(KEY) ||
+      localStorage.getItem(STORAGE_KEY) ||
       localStorage.getItem("pgp-picks-saved") ||
       "[]"
     ));
@@ -47,11 +50,11 @@
     history: [],
     view: "swipe",
     busy: false,
-    detailReturn: null
+    detailReturn: "results"
   };
 
-  // Editorial photos only.
-  // Recommendation cards do not use placeholder photos.
+  // Homepage and category photographs only.
+  // Individual recommendation cards do not use photos.
 
   const photos = {
     hero: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80",
@@ -60,7 +63,7 @@
     escape: "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=900&q=80"
   };
 
-  // Consistent SVG icons instead of emoji-style arrows.
+  // SVG icons prevent arrows from appearing as emojis.
 
   function icon(name) {
     const paths = {
@@ -90,69 +93,93 @@
     `;
   }
 
-  const e = value => String(value ?? "").replace(
-    /[&<>"']/g,
-    c => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[c]
-  );
-
-  const maps = p =>
-    "https://www.google.com/maps/search/?api=1&query=" +
-    encodeURIComponent(
-      p.name + " " + (p.location || "Singapore")
+  function escapeHTML(value) {
+    return String(value ?? "").replace(
+      /[&<>"']/g,
+      character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[character]
     );
+  }
 
-  const btn = (text, id, cls = "") =>
-    `<button class="pick-btn ${cls}" id="${id}">${text}</button>`;
+  function mapsURL(place) {
+    return (
+      "https://www.google.com/maps/search/?api=1&query=" +
+      encodeURIComponent(
+        place.name + " " + (place.location || "Singapore")
+      )
+    );
+  }
 
-  function sync() {
+  function button(label, id, variant = "") {
+    return `
+      <button class="pick-btn ${variant}" id="${id}">
+        ${label}
+      </button>
+    `;
+  }
+
+  function syncSaved() {
     try {
-      localStorage.setItem(KEY, JSON.stringify([...saved]));
-    } catch {}
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify([...saved])
+      );
+    } catch (error) {
+      console.warn("Unable to save bookmarks:", error);
+    }
 
-    const el = $("#savedCount");
-    if (el) el.textContent = saved.size;
+    const count = $("#savedCount");
+
+    if (count) {
+      count.textContent = saved.size;
+    }
   }
 
   function toast(message) {
     document.querySelector(".pick-toast")?.remove();
 
-    const el = document.createElement("div");
-    el.className = "pick-toast";
-    el.textContent = message;
-    document.body.append(el);
+    const element = document.createElement("div");
+    element.className = "pick-toast";
+    element.textContent = message;
 
-    setTimeout(() => el.remove(), 1800);
+    document.body.appendChild(element);
+
+    setTimeout(() => element.remove(), 1800);
   }
 
-  function shell(html) {
-    app.innerHTML = `<div class="pick-wrap">${html}</div>`;
+  function shell(content) {
+    app.innerHTML = `
+      <div class="pick-wrap">
+        ${content}
+      </div>
+    `;
+
     window.scrollTo(0, 0);
   }
 
   // QUESTIONNAIRES
 
-  const qs = {
+  const questions = {
     eat: [
-      [
-        "budget",
-        "What is your budget?",
-        [
+      {
+        key: "budget",
+        title: "What is your budget?",
+        options: [
           ["5", "Under $5"],
           ["10", "$5 to $10"],
           ["20", "$10 to $20"],
           ["999", "Over $20"]
         ]
-      ],
-      [
-        "craving",
-        "What are we craving?",
-        [
+      },
+      {
+        key: "craving",
+        title: "What are we craving?",
+        options: [
           ["local", "Local favourites"],
           ["spicy", "Spicy food"],
           ["hearty", "Comfort food"],
@@ -160,78 +187,78 @@
           ["sweet", "Desserts and cafes"],
           ["any", "Surprise me"]
         ]
-      ],
-      [
-        "distance",
-        "How far are we going?",
-        [
+      },
+      {
+        key: "distance",
+        title: "How far are we going?",
+        options: [
           ["0", "At PGPR"],
           ["1", "On campus"],
           ["2", "Nearby"],
           ["3", "Anywhere worth the trip"]
         ]
-      ]
+      }
     ],
 
     focus: [
-      [
-        "noise",
-        "Your ideal study atmosphere?",
-        [
+      {
+        key: "noise",
+        title: "Your ideal study atmosphere?",
+        options: [
           ["quiet", "Quiet library"],
           ["buzz", "Background noise"],
           ["group", "Group discussion"],
           ["outdoor", "Open air"]
         ]
-      ],
-      [
-        "facilities",
-        "What do you need?",
-        [
+      },
+      {
+        key: "facilities",
+        title: "What do you need?",
+        multi: true,
+        options: [
           ["power", "Charging points"],
           ["aircon", "Air conditioning"],
           ["late", "Late-night access"],
           ["group", "Group space"],
           ["food", "Food nearby"]
-        ],
-        true
-      ],
-      [
-        "when",
-        "When are you studying?",
-        [
+        ]
+      },
+      {
+        key: "when",
+        title: "When are you studying?",
+        options: [
           ["day", "During the day"],
           ["evening", "Evening"],
           ["late", "After midnight"]
         ]
-      ]
+      }
     ],
 
     escape: [
-      [
-        "time",
-        "How much free time?",
-        [
+      {
+        key: "time",
+        title: "How much free time?",
+        options: [
           ["30", "15 to 30 minutes"],
           ["120", "1 to 2 hours"],
           ["240", "Half a day"],
           ["999", "All day"]
         ]
-      ],
-      [
-        "budget",
-        "What is your budget?",
-        [
+      },
+      {
+        key: "budget",
+        title: "What is your budget?",
+        options: [
           ["0", "Free"],
           ["10", "Under $10"],
           ["30", "$10 to $30"],
           ["999", "Over $30"]
         ]
-      ],
-      [
-        "mood",
-        "What sounds fun?",
-        [
+      },
+      {
+        key: "mood",
+        title: "What sounds fun?",
+        options: [
           ["nature", "Nature"],
           ["explore", "Explore somewhere new"],
           ["friends", "Games with friends"],
@@ -239,15 +266,15 @@
           ["sweet", "Cafes and treats"],
           ["any", "Surprise me"]
         ]
-      ]
+      }
     ]
   };
 
-  // STYLING
+  // STYLES
 
-  const css = document.createElement("style");
+  const style = document.createElement("style");
 
-  css.textContent = `
+  style.textContent = `
     .pick-wrap {
       max-width: 1050px;
       margin: auto;
@@ -261,7 +288,7 @@
     }
 
     .pick-title {
-      font: 800 clamp(36px,7vw,78px)/1.02
+      font: 800 clamp(36px, 7vw, 78px)/1.02
         "Space Grotesk", Arial, sans-serif;
       letter-spacing: -.055em;
       margin: 18px 0;
@@ -300,7 +327,7 @@
       color: #172b50;
     }
 
-    .pick-btn[disabled] {
+    .pick-btn:disabled {
       opacity: .4;
       cursor: not-allowed;
     }
@@ -317,7 +344,7 @@
 
     .pick-hero {
       background: #f6b38c;
-      padding: clamp(22px,5vw,55px);
+      padding: clamp(22px, 5vw, 55px);
       margin-bottom: 36px;
     }
 
@@ -331,7 +358,7 @@
 
     .pick-grid {
       display: grid;
-      grid-template-columns: repeat(3,minmax(0,1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 15px;
       margin: 20px 0;
     }
@@ -365,13 +392,13 @@
     .pick-panel {
       background: #fffaf1;
       border: 1px solid #ded1be;
-      padding: clamp(20px,4vw,40px);
+      padding: clamp(20px, 4vw, 40px);
       margin: 20px 0;
     }
 
     .pick-options {
       display: grid;
-      grid-template-columns: repeat(2,1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
       margin: 25px 0;
     }
@@ -472,7 +499,7 @@
     }
 
     .pick-card h2 {
-      font: 800 clamp(28px,5vw,42px)/1.05
+      font: 800 clamp(28px, 5vw, 42px)/1.05
         "Space Grotesk", Arial, sans-serif;
       overflow-wrap: anywhere;
     }
@@ -505,11 +532,6 @@
 
     .pick-stamp.save {
       color: #287a4b;
-    }
-
-    .pick-card .pick-row {
-      position: relative;
-      z-index: 1;
     }
 
     .pick-actions {
@@ -556,7 +578,7 @@
       white-space: nowrap;
     }
 
-    @media(max-width:720px) {
+    @media (max-width: 720px) {
       .pick-grid,
       .pick-options {
         grid-template-columns: 1fr;
@@ -579,14 +601,14 @@
       }
     }
 
-    @media(prefers-reduced-motion:reduce) {
+    @media (prefers-reduced-motion: reduce) {
       .pick-card {
         transition-duration: .01ms !important;
       }
     }
   `;
 
-  document.head.append(css);
+  document.head.appendChild(style);
 
   // HOMEPAGE
 
@@ -609,7 +631,10 @@
           curated for PGPR residents.
         </p>
 
-        ${btn("FIND YOUR PICK " + icon("right"), "start")}
+        ${button(
+          "FIND YOUR PICK " + icon("right"),
+          "start"
+        )}
 
         <img
           src="${photos.hero}"
@@ -630,7 +655,11 @@
               src="${photos[key]}"
               alt="${name} editorial photograph"
             >
-            <strong>${name} ${icon("up")}</strong>
+
+            <strong>
+              ${name} ${icon("up")}
+            </strong>
+
             <small>${description}</small>
           </button>
         `).join("")}
@@ -642,10 +671,11 @@
       </p>
     `);
 
-    $("#start").onclick = () =>
+    $("#start").onclick = () => {
       $(".pick-grid").scrollIntoView({
         behavior: "smooth"
       });
+    };
 
     document.querySelectorAll("[data-cat]").forEach(button => {
       button.onclick = () => start(button.dataset.cat);
@@ -662,14 +692,20 @@
   // QUESTIONNAIRE
 
   function quiz() {
-    const q = qs[state.category]?.[state.step];
+    const question = questions[state.category]?.[state.step];
 
-    if (!q) {
+    if (!question) {
       prepare();
       return;
     }
 
-    const [key, title, options, multi] = q;
+    const {
+      key,
+      title,
+      options,
+      multi
+    } = question;
+
     const value = state.answers[key];
 
     shell(`
@@ -683,29 +719,33 @@
           / QUESTION ${state.step + 1}
         </div>
 
-        <h1 class="pick-title">${e(title)}</h1>
+        <h1 class="pick-title">
+          ${escapeHTML(title)}
+        </h1>
 
-        ${multi ? "<p>Select all that apply.</p>" : ""}
+        ${multi
+          ? "<p>Select all that apply.</p>"
+          : ""}
 
         <div class="pick-options">
-          ${options.map(([v, label]) => {
-            const active = multi
-              ? (value || []).includes(v)
-              : value === v;
+          ${options.map(([optionValue, label]) => {
+            const selected = multi
+              ? (value || []).includes(optionValue)
+              : value === optionValue;
 
             return `
               <button
                 class="pick-option"
-                data-answer="${v}"
-                aria-pressed="${active}"
+                data-answer="${optionValue}"
+                aria-pressed="${selected}"
               >
-                ${e(label)}
+                ${escapeHTML(label)}
               </button>
             `;
           }).join("")}
         </div>
 
-        ${btn(
+        ${button(
           state.step === 2
             ? "FIND MY PICKS " + icon("up")
             : "NEXT " + icon("right"),
@@ -715,7 +755,7 @@
     `);
 
     $("#back").onclick = () => {
-      if (state.step) {
+      if (state.step > 0) {
         state.step--;
         quiz();
       } else {
@@ -723,18 +763,18 @@
       }
     };
 
-    document.querySelectorAll("[data-answer]").forEach(button => {
-      button.onclick = () => {
-        const v = button.dataset.answer;
+    document.querySelectorAll("[data-answer]").forEach(buttonElement => {
+      buttonElement.onclick = () => {
+        const selectedValue = buttonElement.dataset.answer;
 
         if (multi) {
-          const old = state.answers[key] || [];
+          const previous = state.answers[key] || [];
 
-          state.answers[key] = old.includes(v)
-            ? old.filter(x => x !== v)
-            : [...old, v];
+          state.answers[key] = previous.includes(selectedValue)
+            ? previous.filter(item => item !== selectedValue)
+            : [...previous, selectedValue];
         } else {
-          state.answers[key] = v;
+          state.answers[key] = selectedValue;
         }
 
         quiz();
@@ -759,70 +799,81 @@
 
   // MATCHING
 
-  function lateOK(p) {
+  function lateAccessVerified(place) {
     if (
-      p.category !== "focus" ||
-      p.accessStatus !== "official"
+      place.category !== "focus" ||
+      place.accessStatus !== "official"
     ) {
       return false;
     }
 
-    if (p.accessMode === "always") return true;
+    if (place.accessMode === "always") {
+      return true;
+    }
 
-    if (p.accessMode === "exam") {
-      return Date.now() <= new Date(
+    if (place.accessMode === "exam") {
+      const deadline = new Date(
         "2026-12-04T23:59:59+08:00"
-      ).getTime();
+      );
+
+      return new Date() <= deadline;
     }
 
     return false;
   }
 
-  function facility(p, requirement) {
+  function facilityMatches(place, requirement) {
     if (requirement === "late") {
-      return lateOK(p);
+      return lateAccessVerified(place);
     }
 
     if (requirement === "power") {
-      return (p.verifiedFacilities || []).includes("power");
+      return (place.verifiedFacilities || []).includes(
+        "power"
+      );
     }
 
-    return (p.tags || []).includes(requirement);
+    return (place.tags || []).includes(requirement);
   }
 
-  function score(p) {
-    const a = state.answers;
-    const tags = p.tags || [];
+  function scorePlace(place) {
+    const answers = state.answers;
+    const tags = place.tags || [];
 
     let points = 0;
-    const good = [];
-    const bad = [];
 
-    function add(ok, weight, yes, no) {
-      if (ok) {
+    const matched = [];
+    const missing = [];
+
+    function addMatch(condition, weight, positive, negative) {
+      if (condition) {
         points += weight;
-        if (yes) good.push(yes);
-      } else if (no) {
-        bad.push(no);
+
+        if (positive) {
+          matched.push(positive);
+        }
+      } else if (negative) {
+        missing.push(negative);
       }
     }
 
     if (state.category === "eat") {
-      add(
-        a.craving === "any" || tags.includes(a.craving),
+      addMatch(
+        answers.craving === "any" ||
+        tags.includes(answers.craving),
         40,
         "Matches your craving"
       );
 
-      add(
-        Number(p.budget) <= Number(a.budget),
+      addMatch(
+        Number(place.budget) <= Number(answers.budget),
         35,
         "Within your budget",
         "Estimated cost may exceed your budget"
       );
 
-      add(
-        Number(p.distance) <= Number(a.distance),
+      addMatch(
+        Number(place.distance) <= Number(answers.distance),
         25,
         "Within your travel range",
         "Farther than preferred"
@@ -830,21 +881,22 @@
     }
 
     if (state.category === "escape") {
-      add(
-        a.mood === "any" || tags.includes(a.mood),
+      addMatch(
+        answers.mood === "any" ||
+        tags.includes(answers.mood),
         40,
         "Matches your activity interest"
       );
 
-      add(
-        Number(p.budget) <= Number(a.budget),
+      addMatch(
+        Number(place.budget) <= Number(answers.budget),
         30,
         "Within your budget",
         "Estimated cost may exceed your budget"
       );
 
-      add(
-        Number(p.minutes) <= Number(a.time),
+      addMatch(
+        Number(place.minutes) <= Number(answers.time),
         30,
         "Fits your available time",
         "May take longer than planned"
@@ -852,22 +904,22 @@
     }
 
     if (state.category === "focus") {
-      add(
-        tags.includes(a.noise),
+      addMatch(
+        tags.includes(answers.noise),
         35,
         "Matches your study atmosphere",
         "Different study atmosphere"
       );
 
-      const requirements = a.facilities || [];
+      const requirements = answers.facilities || [];
 
       if (!requirements.length) {
         points += 40;
       }
 
       for (const requirement of requirements) {
-        add(
-          facility(p, requirement),
+        addMatch(
+          facilityMatches(place, requirement),
           40 / requirements.length,
           "Matches " + requirement,
           (
@@ -881,11 +933,11 @@
       }
 
       if (
-        a.when === "late" ||
+        answers.when === "late" ||
         requirements.includes("late")
       ) {
-        add(
-          lateOK(p),
+        addMatch(
+          lateAccessVerified(place),
           25,
           "Documented late-night access",
           "Late-night access not verified"
@@ -896,18 +948,18 @@
     }
 
     return {
-      ...p,
+      ...place,
       score: Math.round(points),
-      good,
-      bad,
-      exact: bad.length === 0
+      matched,
+      missing,
+      exact: missing.length === 0
     };
   }
 
   function prepare() {
     state.ranked = places
-      .filter(p => p.category === state.category)
-      .map(score)
+      .filter(place => place.category === state.category)
+      .map(scorePlace)
       .sort((a, b) =>
         Number(b.exact) - Number(a.exact) ||
         b.score - a.score ||
@@ -924,31 +976,40 @@
     render();
   }
 
-  // DISCOVERY BATCHES
+  // DISCOVERY
 
-  const batch = () =>
-    state.ranked.slice(state.start, state.start + 5);
+  function currentBatch() {
+    return state.ranked.slice(
+      state.start,
+      state.start + 5
+    );
+  }
 
-  const current = () =>
-    batch()[state.index];
+  function currentPlace() {
+    return currentBatch()[state.index];
+  }
 
-  const shortlist = () =>
-    state.ranked.filter(p => state.liked.includes(p.id));
+  function shortlist() {
+    return state.ranked.filter(
+      place => state.liked.includes(place.id)
+    );
+  }
 
-  function resultCard(p) {
+  function resultCard(place) {
     return `
       <article class="pick-result">
         <span class="pick-tag">
-          ${p.score}% PREFERENCE MATCH
+          ${place.score}% PREFERENCE MATCH
         </span>
 
-        <h3>${e(p.name)}</h3>
-        <p>${e(p.description)}</p>
+        <h3>${escapeHTML(place.name)}</h3>
 
-        ${p.bad.length
+        <p>${escapeHTML(place.description)}</p>
+
+        ${place.missing.length
           ? `
             <p class="pick-warning">
-              Check: ${e(p.bad.join("; "))}
+              Check: ${escapeHTML(place.missing.join("; "))}
             </p>
           `
           : ""}
@@ -956,16 +1017,16 @@
         <div class="pick-row">
           <button
             class="pick-btn alt"
-            data-detail="${e(p.id)}"
+            data-detail="${escapeHTML(place.id)}"
           >
             DETAILS ${icon("up")}
           </button>
 
           <button
             class="pick-btn"
-            data-add="${e(p.id)}"
+            data-add="${escapeHTML(place.id)}"
           >
-            ${state.liked.includes(p.id)
+            ${state.liked.includes(place.id)
               ? "ADDED"
               : "ADD TO SHORTLIST"}
           </button>
@@ -974,12 +1035,10 @@
     `;
   }
 
-  // SWIPE CARD
+  function swipeCardHTML() {
+    const place = currentPlace();
 
-  function swipeHTML() {
-    const p = current();
-
-    if (!p) {
+    if (!place) {
       return `
         <section class="pick-panel">
           <h2>READY FOR MORE?</h2>
@@ -989,8 +1048,9 @@
           </p>
 
           <div class="pick-row">
-            ${btn("VIEW MY SHORTLIST", "finish")}
-            ${btn(
+            ${button("VIEW MY SHORTLIST", "finish")}
+
+            ${button(
               "DISCOVER MORE " + icon("right"),
               "more",
               "alt"
@@ -1020,7 +1080,7 @@
 
         <article
           id="swipeCard"
-          class="pick-card ${p.category}"
+          class="pick-card ${place.category}"
         >
           <div
             class="pick-stamp pass"
@@ -1037,31 +1097,33 @@
           </div>
 
           <span class="pick-tag">
-            ${p.score}% MATCH
+            ${place.score}% MATCH
           </span>
 
-          ${p.hiddenGem
+          ${place.hiddenGem
             ? '<span class="pick-tag">HIDDEN GEM</span>'
             : ""}
 
-          <h2>${e(p.name)}</h2>
+          <h2>${escapeHTML(place.name)}</h2>
 
-          <p>${e(p.description)}</p>
+          <p>${escapeHTML(place.description)}</p>
 
           <details>
             <summary>WHY THIS PICK?</summary>
 
             <p>
-              ${e(
-                p.good.join("; ") ||
+              ${escapeHTML(
+                place.matched.join("; ") ||
                 "Based on your selected preferences"
               )}
             </p>
 
-            ${p.bad.length
+            ${place.missing.length
               ? `
                 <p class="pick-warning">
-                  Check: ${e(p.bad.join("; "))}
+                  Check: ${escapeHTML(
+                    place.missing.join("; ")
+                  )}
                 </p>
               `
               : ""}
@@ -1070,14 +1132,14 @@
           <div class="pick-row">
             <button
               class="pick-btn alt"
-              data-detail="${e(p.id)}"
+              data-detail="${escapeHTML(place.id)}"
             >
               DETAILS ${icon("up")}
             </button>
 
             <a
               class="pick-btn alt"
-              href="${maps(p)}"
+              href="${mapsURL(place)}"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -1087,13 +1149,26 @@
         </article>
 
         <div class="pick-actions">
-          ${btn(icon("x") + " SKIP", "skip", "alt")}
-          ${btn(icon("heart") + " SAVE", "save")}
-          ${btn(icon("undo") + " UNDO", "undo", "alt")}
+          ${button(
+            icon("x") + " SKIP",
+            "skip",
+            "alt"
+          )}
+
+          ${button(
+            icon("heart") + " SAVE",
+            "save"
+          )}
+
+          ${button(
+            icon("undo") + " UNDO",
+            "undo",
+            "alt"
+          )}
         </div>
 
         <div style="text-align:center">
-          ${btn(
+          ${button(
             "DONE? VIEW MY SHORTLIST (" +
             state.liked.length + ")",
             "finish",
@@ -1101,10 +1176,7 @@
           )}
         </div>
 
-        <p
-          class="pick-muted"
-          style="text-align:center"
-        >
+        <p class="pick-muted" style="text-align:center">
           Drag left to skip or right to save.
           Buttons work too.
         </p>
@@ -1112,10 +1184,8 @@
     `;
   }
 
-  // RESULTS PAGE
-
   function render() {
-    const list = state.view === "list";
+    const listMode = state.view === "list";
 
     shell(`
       <button class="pick-back" id="edit">
@@ -1136,35 +1206,35 @@
       </p>
 
       <div class="pick-row">
-        ${btn(
+        ${button(
           "SWIPE MODE",
           "swipeView",
-          list ? "alt" : ""
+          listMode ? "alt" : ""
         )}
 
-        ${btn(
+        ${button(
           "EXPLORE ALL PICKS",
           "listView",
-          list ? "" : "alt"
+          listMode ? "" : "alt"
         )}
 
-        ${btn(
+        ${button(
           "MY SHORTLIST (" + state.liked.length + ")",
           "shortlist",
           "alt"
         )}
       </div>
 
-      ${list
+      ${listMode
         ? `
           <div class="pick-grid">
             ${state.ranked.map(resultCard).join("")}
           </div>
         `
-        : swipeHTML()}
+        : swipeCardHTML()}
 
       <p class="pick-muted">
-        Scores reflect questionnaire preferences,
+        Match scores reflect questionnaire preferences,
         not reviews or live availability.
         Verify opening hours, prices, dietary needs
         and access before visiting.
@@ -1188,31 +1258,27 @@
 
     $("#shortlist").onclick = finalPage;
 
-    document.querySelectorAll("[data-detail]").forEach(b => {
-      b.onclick = () =>
-        detail(b.dataset.detail, "results");
+    document.querySelectorAll("[data-detail]").forEach(buttonElement => {
+      buttonElement.onclick = () => {
+        detail(buttonElement.dataset.detail, "results");
+      };
     });
 
-    document.querySelectorAll('[id^="detail-"]').forEach(b => {
-      b.onclick = () =>
-        detail(b.id.slice(7), "results");
-    });
-
-    document.querySelectorAll("[data-add]").forEach(b => {
-      b.onclick = () => {
-        const id = b.dataset.add;
+    document.querySelectorAll("[data-add]").forEach(buttonElement => {
+      buttonElement.onclick = () => {
+        const id = buttonElement.dataset.add;
 
         state.liked = state.liked.includes(id)
-          ? state.liked.filter(x => x !== id)
+          ? state.liked.filter(item => item !== id)
           : [...state.liked, id];
 
         render();
       };
     });
 
-    if (list) return;
+    if (listMode) return;
 
-    if (!current()) {
+    if (!currentPlace()) {
       $("#finish").onclick = finalPage;
       $("#more").onclick = nextBatch;
       return;
@@ -1225,47 +1291,51 @@
 
     $("#undo").disabled = !state.history.length;
 
-    drag();
+    enableDrag();
   }
 
-  // ANIMATED SWIPING
+  // SWIPING
 
   function swipe(keep) {
     if (state.busy) return;
 
-    const p = current();
-    const el = $("#swipeCard");
+    const place = currentPlace();
+    const element = $("#swipeCard");
 
-    if (!p || !el) return;
+    if (!place || !element) return;
 
     state.busy = true;
 
     const direction = keep ? 1 : -1;
+
     const stamp = $(
       keep ? "#saveStamp" : "#passStamp"
     );
 
     stamp.style.opacity = "1";
 
-    el.style.transition =
+    element.style.transition =
       "transform 300ms ease, opacity 300ms ease";
 
-    el.style.transform = `
+    element.style.transform = `
       translateX(${direction * (window.innerWidth + 400)}px)
       rotate(${direction * 23}deg)
     `;
 
-    el.style.opacity = "0";
+    element.style.opacity = "0";
 
     setTimeout(() => {
       state.history.push({
         index: state.index,
-        id: p.id,
-        wasLiked: state.liked.includes(p.id)
+        id: place.id,
+        wasLiked: state.liked.includes(place.id)
       });
 
-      if (keep && !state.liked.includes(p.id)) {
-        state.liked.push(p.id);
+      if (
+        keep &&
+        !state.liked.includes(place.id)
+      ) {
+        state.liked.push(place.id);
       }
 
       state.index++;
@@ -1283,6 +1353,7 @@
     if (state.busy) return;
 
     const last = state.history.pop();
+
     if (!last) return;
 
     state.index = last.index;
@@ -1296,59 +1367,64 @@
     render();
   }
 
-  function drag() {
-    const el = $("#swipeCard");
-    if (!el) return;
+  function enableDrag() {
+    const element = $("#swipeCard");
 
-    let x = 0;
-    let y = 0;
-    let id = null;
+    if (!element) return;
+
+    let startX = 0;
+    let startY = 0;
+    let pointerId = null;
     let active = false;
 
     function reset() {
       active = false;
-      id = null;
+      pointerId = null;
 
-      el.style.transition = "transform 200ms ease";
-      el.style.transform =
+      element.style.transition =
+        "transform 200ms ease";
+
+      element.style.transform =
         "translateX(0) rotate(0)";
 
       $("#passStamp").style.opacity = "0";
       $("#saveStamp").style.opacity = "0";
     }
 
-    el.addEventListener("pointerdown", event => {
+    element.addEventListener("pointerdown", event => {
       if (
         state.busy ||
         event.target.closest(
-          "button,a,details,summary"
+          "button, a, details, summary"
         )
       ) {
         return;
       }
 
-      x = event.clientX;
-      y = event.clientY;
-      id = event.pointerId;
+      startX = event.clientX;
+      startY = event.clientY;
+      pointerId = event.pointerId;
       active = true;
 
-      el.style.transition = "none";
-      el.setPointerCapture(id);
+      element.style.transition = "none";
+
+      element.setPointerCapture(pointerId);
     });
 
-    el.addEventListener("pointermove", event => {
+    element.addEventListener("pointermove", event => {
       if (
         !active ||
-        event.pointerId !== id
+        event.pointerId !== pointerId
       ) {
         return;
       }
 
-      const dx = event.clientX - x;
-      const dy = event.clientY - y;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
 
       if (
-        Math.abs(dy) > Math.abs(dx) * 1.5
+        Math.abs(dy) >
+        Math.abs(dx) * 1.5
       ) {
         return;
       }
@@ -1358,7 +1434,7 @@
         Math.min(18, dx / 18)
       );
 
-      el.style.transform = `
+      element.style.transform = `
         translateX(${dx}px)
         rotate(${rotation}deg)
       `;
@@ -1374,19 +1450,19 @@
           : 0;
     });
 
-    el.addEventListener("pointerup", event => {
+    element.addEventListener("pointerup", event => {
       if (
         !active ||
-        event.pointerId !== id
+        event.pointerId !== pointerId
       ) {
         return;
       }
 
-      const dx = event.clientX - x;
-      const dy = event.clientY - y;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
 
       active = false;
-      id = null;
+      pointerId = null;
 
       if (
         Math.abs(dx) > 90 &&
@@ -1398,7 +1474,7 @@
       }
     });
 
-    el.addEventListener("pointercancel", reset);
+    element.addEventListener("pointercancel", reset);
   }
 
   // DISCOVER MORE
@@ -1410,6 +1486,7 @@
       toast(
         "Try changing your preferences to discover different places"
       );
+
       finalPage();
       return;
     }
@@ -1456,18 +1533,18 @@
               TOP SAVED MATCH
             </div>
 
-            <h2>${e(best.name)}</h2>
+            <h2>${escapeHTML(best.name)}</h2>
 
             <span class="pick-tag">
               ${best.score}% MATCH
             </span>
 
-            <p>${e(best.description)}</p>
+            <p>${escapeHTML(best.description)}</p>
 
             <div class="pick-row">
               <a
                 class="pick-btn"
-                href="${maps(best)}"
+                href="${mapsURL(best)}"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -1476,7 +1553,7 @@
 
               <button
                 class="pick-btn alt"
-                data-detail="${e(best.id)}"
+                data-detail="${escapeHTML(best.id)}"
               >
                 DETAILS
               </button>
@@ -1499,16 +1576,16 @@
                 </div>
 
                 <h2>
-                  ${e(state.ranked[0].name)}
+                  ${escapeHTML(state.ranked[0].name)}
                 </h2>
 
                 <p>
-                  ${e(state.ranked[0].description)}
+                  ${escapeHTML(state.ranked[0].description)}
                 </p>
 
                 <button
                   class="pick-btn alt"
-                  data-detail="${e(state.ranked[0].id)}"
+                  data-detail="${escapeHTML(state.ranked[0].id)}"
                 >
                   DETAILS
                 </button>
@@ -1518,9 +1595,22 @@
         `}
 
       <div class="pick-row">
-        ${btn("DISCOVER MORE", "more")}
-        ${btn("EXPLORE ALL PICKS", "browse", "alt")}
-        ${btn("SHARE SHORTLIST", "share", "alt")}
+        ${button(
+          "DISCOVER MORE",
+          "more"
+        )}
+
+        ${button(
+          "EXPLORE ALL PICKS",
+          "browse",
+          "alt"
+        )}
+
+        ${button(
+          "SHARE SHORTLIST",
+          "share",
+          "alt"
+        )}
       </div>
     `);
 
@@ -1532,24 +1622,27 @@
       render();
     };
 
-    $("#share").onclick = () =>
+    $("#share").onclick = () => {
       share(
         liked.map(
-          p => p.name + ": " + maps(p)
+          place =>
+            place.name + ": " + mapsURL(place)
         ).join("\n")
       );
+    };
 
-    document.querySelectorAll("[data-detail]").forEach(b => {
-      b.onclick = () =>
-        detail(b.dataset.detail, "final");
+    document.querySelectorAll("[data-detail]").forEach(buttonElement => {
+      buttonElement.onclick = () => {
+        detail(buttonElement.dataset.detail, "final");
+      };
     });
 
-    document.querySelectorAll("[data-add]").forEach(b => {
-      b.onclick = () => {
-        const id = b.dataset.add;
+    document.querySelectorAll("[data-add]").forEach(buttonElement => {
+      buttonElement.onclick = () => {
+        const id = buttonElement.dataset.add;
 
         state.liked = state.liked.includes(id)
-          ? state.liked.filter(x => x !== id)
+          ? state.liked.filter(item => item !== id)
           : [...state.liked, id];
 
         finalPage();
@@ -1582,11 +1675,11 @@
   // PLACE DETAILS
 
   function detail(id, origin) {
-    const p = places.find(
-      x => String(x.id) === String(id)
+    const place = places.find(
+      item => String(item.id) === String(id)
     );
 
-    if (!p) return;
+    if (!place) return;
 
     state.detailReturn = origin;
 
@@ -1596,33 +1689,36 @@
       </button>
 
       <div class="pick-kicker">
-        THE PGPR EDIT / ${e(p.category).toUpperCase()}
+        THE PGPR EDIT / ${escapeHTML(
+          place.category
+        ).toUpperCase()}
       </div>
 
       <h1 class="pick-title">
-        ${e(p.name)}
+        ${escapeHTML(place.name)}
       </h1>
 
       <p class="pick-lead">
-        ${e(p.description)}
+        ${escapeHTML(place.description)}
       </p>
 
       <section class="pick-panel">
         <p>
           <strong>LOCATION</strong>
-          <br>
-          ${e(p.location)}
+          ${escapeHTML(place.location)}
         </p>
 
         <p>
           <strong>ACCESS AND HOURS</strong>
-          <br>
-          ${e(p.accessDetails || "Check with the venue")}
+          ${escapeHTML(
+            place.accessDetails ||
+            "Check with the venue"
+          )}
         </p>
 
         <p>
-          ${e(
-            p.note ||
+          ${escapeHTML(
+            place.note ||
             "Verify details before visiting."
           )}
         </p>
@@ -1631,18 +1727,18 @@
       <div class="pick-row">
         <a
           class="pick-btn"
-          href="${maps(p)}"
+          href="${mapsURL(place)}"
           target="_blank"
           rel="noopener noreferrer"
         >
           GOOGLE MAPS ${icon("up")}
         </a>
 
-        ${p.source
+        ${place.source
           ? `
             <a
               class="pick-btn alt"
-              href="${e(p.source)}"
+              href="${escapeHTML(place.source)}"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -1651,8 +1747,8 @@
           `
           : ""}
 
-        ${btn(
-          saved.has(p.id)
+        ${button(
+          saved.has(place.id)
             ? "SAVED"
             : "SAVE PLACE",
           "savePlace",
@@ -1669,16 +1765,16 @@
           : render;
 
     $("#savePlace").onclick = () => {
-      if (saved.has(p.id)) {
-        saved.delete(p.id);
+      if (saved.has(place.id)) {
+        saved.delete(place.id);
       } else {
-        saved.add(p.id);
+        saved.add(place.id);
       }
 
-      sync();
+      syncSaved();
 
       $("#savePlace").textContent =
-        saved.has(p.id)
+        saved.has(place.id)
           ? "SAVED"
           : "SAVE PLACE";
     };
@@ -1687,8 +1783,8 @@
   // SAVED PLACES
 
   function savedPage() {
-    const arr = places.filter(
-      p => saved.has(p.id)
+    const savedPlaces = places.filter(
+      place => saved.has(place.id)
     );
 
     shell(`
@@ -1700,25 +1796,26 @@
         SAVED PLACES.
       </h1>
 
-      ${arr.length
+      ${savedPlaces.length
         ? `
           <div class="pick-grid">
-            ${arr.map(p => `
+            ${savedPlaces.map(place => `
               <article class="pick-result">
-                <h3>${e(p.name)}</h3>
-                <p>${e(p.description)}</p>
+                <h3>${escapeHTML(place.name)}</h3>
+
+                <p>${escapeHTML(place.description)}</p>
 
                 <div class="pick-row">
                   <button
                     class="pick-btn"
-                    data-detail="${e(p.id)}"
+                    data-detail="${escapeHTML(place.id)}"
                   >
                     DETAILS
                   </button>
 
                   <button
                     class="pick-btn alt"
-                    data-remove="${e(p.id)}"
+                    data-remove="${escapeHTML(place.id)}"
                   >
                     REMOVE
                   </button>
@@ -1734,15 +1831,16 @@
 
     $("#back").onclick = home;
 
-    document.querySelectorAll("[data-detail]").forEach(b => {
-      b.onclick = () =>
-        detail(b.dataset.detail, "saved");
+    document.querySelectorAll("[data-detail]").forEach(buttonElement => {
+      buttonElement.onclick = () => {
+        detail(buttonElement.dataset.detail, "saved");
+      };
     });
 
-    document.querySelectorAll("[data-remove]").forEach(b => {
-      b.onclick = () => {
-        saved.delete(b.dataset.remove);
-        sync();
+    document.querySelectorAll("[data-remove]").forEach(buttonElement => {
+      buttonElement.onclick = () => {
+        saved.delete(buttonElement.dataset.remove);
+        syncSaved();
         savedPage();
       };
     });
@@ -1751,17 +1849,17 @@
   // INITIALISE
 
   const homeLink = $("#homeLink");
-  const savedBtn = $("#savedBtn");
+  const savedButton = $("#savedBtn");
 
   if (homeLink) {
     homeLink.onclick = home;
   }
 
-  if (savedBtn) {
-    savedBtn.onclick = savedPage;
+  if (savedButton) {
+    savedButton.onclick = savedPage;
   }
 
-  sync();
+  syncSaved();
   home();
 
 })();
