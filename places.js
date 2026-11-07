@@ -1,5 +1,5 @@
-/* Study access details sourced from NUS Libraries, checked 7 Nov 2026. Hours are not live. */
-window.PLACES=[
+/* PGPR Picks: curated venue candidates. Verify prices, hours and status before public launch. */
+window.PLACES = [
   {
     "id": "central",
     "name": "Central Library",
@@ -87,10 +87,10 @@ window.PLACES=[
     "name": "Kent Ridge Park",
     "category": "escape",
     "tags": [
+      "free",
       "friends",
-      "solo",
       "nature",
-      "free"
+      "solo"
     ],
     "budget": 0,
     "distance": 1,
@@ -106,10 +106,10 @@ window.PLACES=[
     "name": "West Coast Park",
     "category": "escape",
     "tags": [
+      "free",
       "friends",
-      "solo",
       "nature",
-      "free"
+      "solo"
     ],
     "budget": 0,
     "distance": 2,
@@ -125,10 +125,10 @@ window.PLACES=[
     "name": "HortPark",
     "category": "escape",
     "tags": [
+      "free",
       "friends",
-      "solo",
       "nature",
-      "free"
+      "solo"
     ],
     "budget": 0,
     "distance": 2,
@@ -146,8 +146,8 @@ window.PLACES=[
     "tags": [
       "explore",
       "free",
-      "nature",
-      "friends"
+      "friends",
+      "nature"
     ],
     "budget": 0,
     "distance": 3,
@@ -164,8 +164,8 @@ window.PLACES=[
     "category": "escape",
     "tags": [
       "explore",
-      "nature",
-      "friends"
+      "friends",
+      "nature"
     ],
     "budget": 15,
     "distance": 3,
@@ -182,8 +182,8 @@ window.PLACES=[
     "category": "escape",
     "tags": [
       "explore",
-      "solo",
-      "friends"
+      "friends",
+      "solo"
     ],
     "budget": 10,
     "distance": 2,
@@ -199,11 +199,11 @@ window.PLACES=[
     "name": "Singapore Botanic Gardens",
     "category": "escape",
     "tags": [
+      "explore",
       "free",
       "friends",
-      "solo",
       "nature",
-      "explore"
+      "solo"
     ],
     "budget": 0,
     "distance": 3,
@@ -350,7 +350,7 @@ window.PLACES=[
   },
   {
     "id": "jollibee-utown",
-    "name": "Jollibee — UTown",
+    "name": "Jollibee : UTown",
     "category": "eat",
     "tags": [
       "hearty"
@@ -366,7 +366,7 @@ window.PLACES=[
   },
   {
     "id": "mrbean-utown",
-    "name": "Mr Bean / Do Qoo — UTown",
+    "name": "Mr Bean / Do Qoo : UTown",
     "category": "eat",
     "tags": [
       "light",
@@ -400,7 +400,7 @@ window.PLACES=[
   },
   {
     "id": "starbucks-erc",
-    "name": "Starbucks — ERC",
+    "name": "Starbucks : ERC",
     "category": "eat",
     "tags": [
       "sweet",
@@ -417,7 +417,7 @@ window.PLACES=[
   },
   {
     "id": "subway-utown",
-    "name": "Subway — Stephen Riady Centre",
+    "name": "Subway : Stephen Riady Centre",
     "category": "eat",
     "tags": [
       "light",
@@ -434,7 +434,7 @@ window.PLACES=[
   },
   {
     "id": "cl-l6",
-    "name": "Central Library — Level 6 Reading Area",
+    "name": "Central Library : Level 6 Reading Area",
     "category": "focus",
     "tags": [
       "quiet",
@@ -462,7 +462,7 @@ window.PLACES=[
   },
   {
     "id": "msl-l2",
-    "name": "Medicine+Science Library — Level 2 Quiet Study",
+    "name": "Medicine+Science Library : Level 2 Quiet Study",
     "category": "focus",
     "tags": [
       "quiet",
@@ -489,7 +489,7 @@ window.PLACES=[
   },
   {
     "id": "msl-l3",
-    "name": "Medicine+Science Library — Level 3 Quiet Study",
+    "name": "Medicine+Science Library : Level 3 Quiet Study",
     "category": "focus",
     "tags": [
       "quiet",
@@ -516,7 +516,7 @@ window.PLACES=[
   },
   {
     "id": "msl-atrium",
-    "name": "Medicine+Science Library — Level 1 Atrium",
+    "name": "Medicine+Science Library : Level 1 Atrium",
     "category": "focus",
     "tags": [
       "buzz",
@@ -535,7 +535,7 @@ window.PLACES=[
   },
   {
     "id": "cl-l1",
-    "name": "Central Library — Level 1 Learning Area",
+    "name": "Central Library : Level 1 Learning Area",
     "category": "focus",
     "tags": [
       "buzz",
@@ -555,7 +555,7 @@ window.PLACES=[
   },
   {
     "id": "erc-pc",
-    "name": "ERC — PC Commons",
+    "name": "ERC : PC Commons",
     "category": "focus",
     "tags": [
       "group",
@@ -576,7 +576,7 @@ window.PLACES=[
   },
   {
     "id": "erc-mac",
-    "name": "ERC — Mac Commons",
+    "name": "ERC : Mac Commons",
     "category": "focus",
     "tags": [
       "group",
@@ -597,7 +597,7 @@ window.PLACES=[
   },
   {
     "id": "erc-study",
-    "name": "ERC — The Study (Level 2)",
+    "name": "ERC : The Study (Level 2)",
     "category": "focus",
     "tags": [
       "quiet",
@@ -617,7 +617,7 @@ window.PLACES=[
   },
   {
     "id": "erc-ferguson",
-    "name": "ERC — Ian & Peony Ferguson Study",
+    "name": "ERC : Ian & Peony Ferguson Study",
     "category": "focus",
     "tags": [
       "quiet",
@@ -636,7 +636,7 @@ window.PLACES=[
   },
   {
     "id": "erc-learning-cafe",
-    "name": "ERC — Learning Café",
+    "name": "ERC : Learning Café",
     "category": "focus",
     "tags": [
       "buzz",
@@ -656,7 +656,7 @@ window.PLACES=[
   },
   {
     "id": "utown-townplaza",
-    "name": "UTown — Town Plaza Level 2",
+    "name": "UTown : Town Plaza Level 2",
     "category": "focus",
     "tags": [
       "buzz",
@@ -675,7 +675,7 @@ window.PLACES=[
   },
   {
     "id": "cde-lodge",
-    "name": "CDE — The Lodge",
+    "name": "CDE : The Lodge",
     "category": "focus",
     "tags": [
       "quiet",
@@ -686,7 +686,7 @@ window.PLACES=[
     "distance": 1,
     "description": "Designated study and collaboration space in Engineering.",
     "location": "Techno Edge Level 2 NUS Singapore",
-    "note": "Official listing says 8am–9pm Monday–Friday; verify before visiting.",
+    "note": "Official listing says 8am to 9pm, Monday to Friday; verify before visiting.",
     "image": "study",
     "source": "https://cde.nus.edu.sg/student-life/resources/",
     "accessStatus": "unverified",
@@ -695,7 +695,7 @@ window.PLACES=[
   },
   {
     "id": "cde-togather",
-    "name": "CDE — To-gather",
+    "name": "CDE : To-gather",
     "category": "focus",
     "tags": [
       "group",
@@ -714,7 +714,7 @@ window.PLACES=[
   },
   {
     "id": "cde-ea",
-    "name": "CDE — EA Atrium",
+    "name": "CDE : EA Atrium",
     "category": "focus",
     "tags": [
       "buzz",
@@ -733,7 +733,7 @@ window.PLACES=[
   },
   {
     "id": "cde-e1",
-    "name": "CDE — E1 Level 6",
+    "name": "CDE : E1 Level 6",
     "category": "focus",
     "tags": [
       "quiet",
@@ -751,7 +751,7 @@ window.PLACES=[
   },
   {
     "id": "cde-e3",
-    "name": "CDE — E3 Level 5",
+    "name": "CDE : E3 Level 5",
     "category": "focus",
     "tags": [
       "quiet",
@@ -769,7 +769,7 @@ window.PLACES=[
   },
   {
     "id": "cde-e4",
-    "name": "CDE — E4 Level 4 / ECubes",
+    "name": "CDE : E4 Level 4 / ECubes",
     "category": "focus",
     "tags": [
       "group",
@@ -788,7 +788,7 @@ window.PLACES=[
   },
   {
     "id": "cde-e5",
-    "name": "CDE — E5 Level 1",
+    "name": "CDE : E5 Level 1",
     "category": "focus",
     "tags": [
       "quiet",
@@ -806,7 +806,7 @@ window.PLACES=[
   },
   {
     "id": "cde-sde3",
-    "name": "CDE — SDE3 Level 4",
+    "name": "CDE : SDE3 Level 4",
     "category": "focus",
     "tags": [
       "quiet",
@@ -903,10 +903,10 @@ window.PLACES=[
     "name": "Pasir Panjang Park",
     "category": "escape",
     "tags": [
+      "free",
       "friends",
-      "solo",
       "nature",
-      "free"
+      "solo"
     ],
     "distance": 2,
     "description": "Coastal greenery for a short reset.",
@@ -922,11 +922,11 @@ window.PLACES=[
     "name": "Labrador Nature Park",
     "category": "escape",
     "tags": [
+      "explore",
       "free",
       "friends",
-      "solo",
       "nature",
-      "explore"
+      "solo"
     ],
     "distance": 2,
     "description": "Coastal park with greenery and walking paths.",
@@ -939,13 +939,13 @@ window.PLACES=[
   },
   {
     "id": "railcorridor",
-    "name": "Rail Corridor — Bukit Timah section",
+    "name": "Rail Corridor : Bukit Timah section",
     "category": "escape",
     "tags": [
       "explore",
       "free",
-      "nature",
-      "friends"
+      "friends",
+      "nature"
     ],
     "distance": 3,
     "description": "A longer walking break with a change of scenery.",
@@ -961,9 +961,9 @@ window.PLACES=[
     "name": "one-north Park",
     "category": "escape",
     "tags": [
-      "solo",
+      "free",
       "nature",
-      "free"
+      "solo"
     ],
     "distance": 2,
     "description": "A short green escape away from campus.",
@@ -981,8 +981,8 @@ window.PLACES=[
     "tags": [
       "explore",
       "free",
-      "nature",
-      "friends"
+      "friends",
+      "nature"
     ],
     "distance": 3,
     "description": "A spacious park for a longer afternoon out.",
@@ -999,9 +999,9 @@ window.PLACES=[
     "category": "escape",
     "tags": [
       "explore",
-      "solo",
       "free",
-      "friends"
+      "friends",
+      "solo"
     ],
     "distance": 3,
     "description": "A waterfront stroll and change of scenery.",
@@ -1014,7 +1014,7 @@ window.PLACES=[
   },
   {
     "id": "hot-hideout",
-    "name": "A Hot Hideout — PGP",
+    "name": "A Hot Hideout : PGP",
     "category": "eat",
     "tags": [
       "spicy",
@@ -1032,7 +1032,7 @@ window.PLACES=[
   },
   {
     "id": "supersnacks",
-    "name": "Supersnacks — PGP",
+    "name": "Supersnacks : PGP",
     "category": "eat",
     "tags": [
       "hearty",
@@ -1049,44 +1049,11 @@ window.PLACES=[
     "dish": "Check the current snack and meal menu."
   },
   {
-    "id": "bugis-arcade",
-    "name": "Bugis arcade outing",
-    "category": "escape",
-    "tags": [
-      "games",
-      "friends"
-    ],
-    "budget": 30,
-    "distance": 3,
-    "minutes": 240,
-    "description": "Play arcade games and grab a bite with friends; pick a venue before leaving.",
-    "location": "Bugis Junction, Singapore",
-    "note": "Planning budget and time are rough, unverified limits, not live prices or travel times. Check official venue details and Google Maps before visiting.",
-    "image": "city",
-    "source": ""
-  },
-  {
-    "id": "orchard-arcade",
-    "name": "Orchard arcade outing",
-    "category": "escape",
-    "tags": [
-      "games",
-      "friends"
-    ],
-    "budget": 35,
-    "distance": 3,
-    "minutes": 240,
-    "description": "A few rounds of arcade games followed by window shopping.",
-    "location": "Orchard Road, Singapore",
-    "note": "Planning budget and time are rough, unverified limits, not live prices or travel times. Check official venue details and Google Maps before visiting.",
-    "image": "city",
-    "source": ""
-  },
-  {
     "id": "national-gallery",
     "name": "National Gallery Singapore",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
       "solo"
     ],
@@ -1104,6 +1071,7 @@ window.PLACES=[
     "name": "National Museum of Singapore",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
       "solo"
     ],
@@ -1121,6 +1089,7 @@ window.PLACES=[
     "name": "Asian Civilisations Museum",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
       "solo"
     ],
@@ -1138,9 +1107,10 @@ window.PLACES=[
     "name": "Haji Lane & Kampong Gelam",
     "category": "escape",
     "tags": [
-      "shopping",
+      "arts",
       "culture",
-      "friends"
+      "friends",
+      "shopping"
     ],
     "budget": 0,
     "distance": 3,
@@ -1152,84 +1122,14 @@ window.PLACES=[
     "source": ""
   },
   {
-    "id": "chinatown",
-    "name": "Chinatown wander",
-    "category": "escape",
-    "tags": [
-      "shopping",
-      "culture",
-      "friends"
-    ],
-    "budget": 0,
-    "distance": 3,
-    "minutes": 240,
-    "description": "Walk through shophouse streets and markets; set your own spending limit.",
-    "location": "Chinatown, Singapore",
-    "note": "Planning budget and time are rough, unverified limits, not live prices or travel times. Check official venue details and Google Maps before visiting.",
-    "image": "city",
-    "source": ""
-  },
-  {
-    "id": "vivo",
-    "name": "VivoCity browsing",
-    "category": "escape",
-    "tags": [
-      "shopping",
-      "friends"
-    ],
-    "budget": 0,
-    "distance": 2,
-    "minutes": 120,
-    "description": "Window-shop, browse shops and take a break at the waterfront.",
-    "location": "VivoCity, Singapore",
-    "note": "Planning budget and time are rough, unverified limits, not live prices or travel times. Check official venue details and Google Maps before visiting.",
-    "image": "city",
-    "source": ""
-  },
-  {
-    "id": "starvista-cafe",
-    "name": "The Star Vista café break",
-    "category": "escape",
-    "tags": [
-      "cafe",
-      "solo",
-      "friends"
-    ],
-    "budget": 20,
-    "distance": 2,
-    "minutes": 120,
-    "description": "Pick a café and enjoy a drink or dessert near one-north.",
-    "location": "The Star Vista, Singapore",
-    "note": "Planning budget and time are rough, unverified limits, not live prices or travel times. Check official venue details and Google Maps before visiting.",
-    "image": "city",
-    "source": ""
-  },
-  {
-    "id": "holland-village",
-    "name": "Holland Village café crawl",
-    "category": "escape",
-    "tags": [
-      "cafe",
-      "shopping",
-      "friends"
-    ],
-    "budget": 30,
-    "distance": 3,
-    "minutes": 180,
-    "description": "Find a café or dessert spot and explore the neighbourhood.",
-    "location": "Holland Village, Singapore",
-    "note": "Planning budget and time are rough, unverified limits, not live prices or travel times. Check official venue details and Google Maps before visiting.",
-    "image": "city",
-    "source": ""
-  },
-  {
     "id": "jewel",
     "name": "Jewel Changi Airport",
     "category": "escape",
     "tags": [
-      "shopping",
+      "active",
       "adventure",
-      "friends"
+      "friends",
+      "shopping"
     ],
     "budget": 0,
     "distance": 3,
@@ -1245,8 +1145,10 @@ window.PLACES=[
     "name": "Science Centre Singapore",
     "category": "escape",
     "tags": [
-      "culture",
+      "active",
       "adventure",
+      "arts",
+      "culture",
       "friends"
     ],
     "budget": 30,
@@ -1254,24 +1156,6 @@ window.PLACES=[
     "minutes": 300,
     "description": "Interactive exhibitions for a different kind of afternoon.",
     "location": "15 Science Centre Road, Singapore",
-    "note": "Planning budget and time are rough, unverified limits, not live prices or travel times. Check official venue details and Google Maps before visiting.",
-    "image": "city",
-    "source": ""
-  },
-  {
-    "id": "sentosa-adventure",
-    "name": "Sentosa attractions outing",
-    "category": "escape",
-    "tags": [
-      "adventure",
-      "friends",
-      "games"
-    ],
-    "budget": 99,
-    "distance": 3,
-    "minutes": 480,
-    "description": "Plan a bigger outing around a specific attraction; check tickets and travel first.",
-    "location": "Sentosa, Singapore",
     "note": "Planning budget and time are rough, unverified limits, not live prices or travel times. Check official venue details and Google Maps before visiting.",
     "image": "city",
     "source": ""
@@ -1307,7 +1191,7 @@ window.PLACES=[
     "budget": 20,
     "distance": 2,
     "minutes": 100,
-    "description": "Try Burmese coconut chicken noodles (ohn-no khauk swè) or mohinga — something different from campus staples.",
+    "description": "Try Burmese coconut chicken noodles (ohn-no khauk swè) or mohinga : something different from campus staples.",
     "location": "328 Clementi Avenue 2 #01-220, Singapore",
     "note": "Editorial suggestion. Confirm the venue is operating, its menu or admission price, hours, dietary suitability and travel route before visiting. Budget and time fields are conservative recommendation filters, NOT verified prices or journey times.",
     "image": "food",
@@ -1336,7 +1220,7 @@ window.PLACES=[
   },
   {
     "id": "meet-noodles",
-    "name": "MEET Noodles — Clementi",
+    "name": "MEET Noodles : Clementi",
     "category": "eat",
     "tags": [
       "hearty",
@@ -1355,7 +1239,7 @@ window.PLACES=[
   },
   {
     "id": "song-fish-soup",
-    "name": "Song Fish Soup — Clementi 448",
+    "name": "Song Fish Soup : Clementi 448",
     "category": "eat",
     "tags": [
       "local",
@@ -1375,7 +1259,7 @@ window.PLACES=[
   },
   {
     "id": "mei-heong-yuen",
-    "name": "Mei Heong Yuen Dessert — Clementi",
+    "name": "Mei Heong Yuen Dessert : Clementi",
     "category": "eat",
     "tags": [
       "sweet",
@@ -1394,7 +1278,7 @@ window.PLACES=[
   },
   {
     "id": "springleaf-prata",
-    "name": "Springleaf Prata Place — NEWest",
+    "name": "Springleaf Prata Place : NEWest",
     "category": "eat",
     "tags": [
       "local",
@@ -1413,7 +1297,7 @@ window.PLACES=[
   },
   {
     "id": "shanghai-pan-buns",
-    "name": "Shanghai Tan Pan-fried Buns — Clementi",
+    "name": "Shanghai Tan Pan-fried Buns : Clementi",
     "category": "eat",
     "tags": [
       "hearty",
@@ -1435,6 +1319,7 @@ window.PLACES=[
     "name": "Chinatown Heritage Centre",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
       "shopping"
     ],
@@ -1453,13 +1338,14 @@ window.PLACES=[
     "name": "Singapore City Gallery",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
       "shopping"
     ],
     "budget": 0,
     "distance": 3,
     "minutes": 240,
-    "description": "Explore a giant city model and urban-planning displays — an unusual indoor break.",
+    "description": "Explore a giant city model and urban-planning displays : an unusual indoor break.",
     "location": "45 Maxwell Road, Singapore",
     "note": "Editorial suggestion. Confirm the venue is operating, its menu or admission price, hours, dietary suitability and travel route before visiting. Budget and time fields are conservative recommendation filters, NOT verified prices or journey times.",
     "image": "city",
@@ -1471,13 +1357,14 @@ window.PLACES=[
     "name": "Fuk Tak Chi Museum",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
       "shopping"
     ],
     "budget": 0,
     "distance": 3,
     "minutes": 180,
-    "description": "A tiny heritage museum inside a former temple — a quick detour while exploring Telok Ayer.",
+    "description": "A tiny heritage museum inside a former temple : a quick detour while exploring Telok Ayer.",
     "location": "76 Telok Ayer Street, Singapore",
     "note": "Editorial suggestion. Confirm the venue is operating, its menu or admission price, hours, dietary suitability and travel route before visiting. Budget and time fields are conservative recommendation filters, NOT verified prices or journey times.",
     "image": "city",
@@ -1489,6 +1376,7 @@ window.PLACES=[
     "name": "Red Dot Design Museum",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
       "shopping"
     ],
@@ -1507,8 +1395,10 @@ window.PLACES=[
     "name": "Kulnari Mystery Golf",
     "category": "escape",
     "tags": [
-      "games",
-      "adventure"
+      "active",
+      "adventure",
+      "arcade",
+      "games"
     ],
     "budget": 99,
     "distance": 3,
@@ -1522,11 +1412,13 @@ window.PLACES=[
   },
   {
     "id": "haw-par-villa",
-    "name": "Haw Par Villa — mythology sculptures",
+    "name": "Haw Par Villa : mythology sculptures",
     "category": "escape",
     "tags": [
-      "culture",
-      "adventure"
+      "active",
+      "adventure",
+      "arts",
+      "culture"
     ],
     "budget": 10,
     "distance": 2,
@@ -1701,7 +1593,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind10",
-    "name": "Hjh Maimunah Mini — Hawkers Street",
+    "name": "Hjh Maimunah Mini : Hawkers Street",
     "category": "eat",
     "tags": [
       "local",
@@ -1720,7 +1612,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind11",
-    "name": "Jason Penang Cuisine — Hawkers Street",
+    "name": "Jason Penang Cuisine : Hawkers Street",
     "category": "eat",
     "tags": [
       "local",
@@ -1739,7 +1631,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind12",
-    "name": "Tiong Bahru Hainanese Boneless Chicken Rice — Hawkers Street",
+    "name": "Tiong Bahru Hainanese Boneless Chicken Rice : Hawkers Street",
     "category": "eat",
     "tags": [
       "local",
@@ -1757,7 +1649,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind13",
-    "name": "Beach Road Scissor-Cut Curry Rice — Hawkers Street",
+    "name": "Beach Road Scissor-Cut Curry Rice : Hawkers Street",
     "category": "eat",
     "tags": [
       "local",
@@ -1775,7 +1667,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind14",
-    "name": "Pang’s Hakka Yong Tau Foo — Hawkers Street",
+    "name": "Pang’s Hakka Yong Tau Foo : Hawkers Street",
     "category": "eat",
     "tags": [
       "local",
@@ -1794,7 +1686,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind15",
-    "name": "The Neighbourwok — Hawkers Street",
+    "name": "The Neighbourwok : Hawkers Street",
     "category": "eat",
     "tags": [
       "local",
@@ -1812,7 +1704,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind16",
-    "name": "Gong Yuan Ma La Tang — Clementi",
+    "name": "Gong Yuan Ma La Tang : Clementi",
     "category": "eat",
     "tags": [
       "spicy",
@@ -1830,7 +1722,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind17",
-    "name": "Sinfoodie — Clementi West",
+    "name": "Sinfoodie : Clementi West",
     "category": "eat",
     "tags": [
       "hearty",
@@ -1848,7 +1740,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind18",
-    "name": "Nasi Lemak Ayam Taliwang — Sinfoodie",
+    "name": "Nasi Lemak Ayam Taliwang : Sinfoodie",
     "category": "eat",
     "tags": [
       "spicy",
@@ -1941,7 +1833,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind23",
-    "name": "Gelatolabo — Faber Drive",
+    "name": "Gelatolabo : Faber Drive",
     "category": "eat",
     "tags": [
       "sweet"
@@ -1958,7 +1850,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind24",
-    "name": "Burnt Cones — Sunset Way",
+    "name": "Burnt Cones : Sunset Way",
     "category": "eat",
     "tags": [
       "sweet"
@@ -2064,7 +1956,7 @@ window.PLACES=[
   },
   {
     "id": "foodfind30",
-    "name": "Springleaf Prata Place — Sunset Way",
+    "name": "Springleaf Prata Place : Sunset Way",
     "category": "eat",
     "tags": [
       "hearty",
@@ -2082,7 +1974,7 @@ window.PLACES=[
   },
   {
     "id": "yih-skylight",
-    "name": "Yusof Ishak House — Skylight (L1)",
+    "name": "Yusof Ishak House : Skylight (L1)",
     "category": "focus",
     "tags": [
       "buzz",
@@ -2102,7 +1994,7 @@ window.PLACES=[
   },
   {
     "id": "yih-social",
-    "name": "Yusof Ishak House — Social Commons (L2)",
+    "name": "Yusof Ishak House : Social Commons (L2)",
     "category": "focus",
     "tags": [
       "buzz",
@@ -2122,7 +2014,7 @@ window.PLACES=[
   },
   {
     "id": "yih-stairs",
-    "name": "Yusof Ishak House — Atrium Stairs (L3)",
+    "name": "Yusof Ishak House : Atrium Stairs (L3)",
     "category": "focus",
     "tags": [
       "buzz",
@@ -2141,7 +2033,7 @@ window.PLACES=[
   },
   {
     "id": "yih-roof",
-    "name": "Yusof Ishak House — Roof Terrace (L4)",
+    "name": "Yusof Ishak House : Roof Terrace (L4)",
     "category": "focus",
     "tags": [
       "buzz",
@@ -2161,7 +2053,7 @@ window.PLACES=[
   },
   {
     "id": "yih-commons",
-    "name": "Yusof Ishak House — Commons (L4)",
+    "name": "Yusof Ishak House : Commons (L4)",
     "category": "focus",
     "tags": [
       "group",
@@ -2181,7 +2073,7 @@ window.PLACES=[
   },
   {
     "id": "yih-crossroad",
-    "name": "Yusof Ishak House — Crossroad (L4)",
+    "name": "Yusof Ishak House : Crossroad (L4)",
     "category": "focus",
     "tags": [
       "group",
@@ -2201,7 +2093,7 @@ window.PLACES=[
   },
   {
     "id": "yih-assembly",
-    "name": "Yusof Ishak House — Assembly (L5)",
+    "name": "Yusof Ishak House : Assembly (L5)",
     "category": "focus",
     "tags": [
       "group",
@@ -2221,7 +2113,7 @@ window.PLACES=[
   },
   {
     "id": "yih-exchange",
-    "name": "Yusof Ishak House — Exchange (L5)",
+    "name": "Yusof Ishak House : Exchange (L5)",
     "category": "focus",
     "tags": [
       "group",
@@ -2241,7 +2133,7 @@ window.PLACES=[
   },
   {
     "id": "yih-quad",
-    "name": "Yusof Ishak House — Quad (L5)",
+    "name": "Yusof Ishak House : Quad (L5)",
     "category": "focus",
     "tags": [
       "group",
@@ -2261,7 +2153,7 @@ window.PLACES=[
   },
   {
     "id": "yih-yard",
-    "name": "Yusof Ishak House — Yard (L5)",
+    "name": "Yusof Ishak House : Yard (L5)",
     "category": "focus",
     "tags": [
       "group",
@@ -2281,7 +2173,7 @@ window.PLACES=[
   },
   {
     "id": "yih-nussu",
-    "name": "Yusof Ishak House — NUSSU Student Lounge",
+    "name": "Yusof Ishak House : NUSSU Student Lounge",
     "category": "focus",
     "tags": [
       "buzz",
@@ -2301,7 +2193,7 @@ window.PLACES=[
   },
   {
     "id": "cl-l5",
-    "name": "Central Library — Level 5 Quiet Study",
+    "name": "Central Library : Level 5 Quiet Study",
     "category": "focus",
     "tags": [
       "quiet",
@@ -2322,11 +2214,12 @@ window.PLACES=[
   },
   {
     "id": "yih-pitstop",
-    "name": "Pitstop @ YIH — board games & Switch",
+    "name": "Pitstop @ YIH : board games & Switch",
     "category": "escape",
     "tags": [
-      "games",
-      "friends"
+      "arcade",
+      "friends",
+      "games"
     ],
     "distance": 1,
     "minutes": 90,
@@ -2340,11 +2233,12 @@ window.PLACES=[
   },
   {
     "id": "cde-spacebar",
-    "name": "Space Bar @ CDE — pool & games",
+    "name": "Space Bar @ CDE : pool & games",
     "category": "escape",
     "tags": [
-      "games",
-      "friends"
+      "arcade",
+      "friends",
+      "games"
     ],
     "distance": 1,
     "minutes": 90,
@@ -2361,9 +2255,10 @@ window.PLACES=[
     "name": "Lee Kong Chian Natural History Museum",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
-      "solo",
-      "friends"
+      "friends",
+      "solo"
     ],
     "distance": 1,
     "minutes": 120,
@@ -2380,9 +2275,10 @@ window.PLACES=[
     "name": "NUS Museum",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
-      "solo",
-      "free"
+      "free",
+      "solo"
     ],
     "distance": 1,
     "minutes": 90,
@@ -2396,11 +2292,12 @@ window.PLACES=[
   },
   {
     "id": "nussports",
-    "name": "NUS University Sports Centre — recreation",
+    "name": "NUS University Sports Centre : recreation",
     "category": "escape",
     "tags": [
-      "games",
-      "friends"
+      "arcade",
+      "friends",
+      "games"
     ],
     "distance": 1,
     "minutes": 120,
@@ -2417,6 +2314,7 @@ window.PLACES=[
     "name": "ArtScience Museum",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
       "friends",
       "solo"
@@ -2436,9 +2334,10 @@ window.PLACES=[
     "name": "Singapore Art Museum at Tanjong Pagar Distripark",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
-      "solo",
-      "friends"
+      "friends",
+      "solo"
     ],
     "distance": 3,
     "minutes": 180,
@@ -2455,9 +2354,10 @@ window.PLACES=[
     "name": "Peranakan Museum",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
-      "solo",
-      "friends"
+      "friends",
+      "solo"
     ],
     "distance": 3,
     "minutes": 150,
@@ -2474,9 +2374,10 @@ window.PLACES=[
     "name": "Indian Heritage Centre",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
-      "solo",
-      "friends"
+      "friends",
+      "solo"
     ],
     "distance": 3,
     "minutes": 120,
@@ -2493,9 +2394,10 @@ window.PLACES=[
     "name": "Singapore Chinese Cultural Centre",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
-      "solo",
-      "friends"
+      "friends",
+      "solo"
     ],
     "distance": 3,
     "minutes": 120,
@@ -2509,12 +2411,13 @@ window.PLACES=[
   },
   {
     "id": "library-orchard",
-    "name": "library@orchard — design browsing",
+    "name": "library@orchard : design browsing",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
-      "solo",
-      "free"
+      "free",
+      "solo"
     ],
     "distance": 3,
     "minutes": 90,
@@ -2528,12 +2431,13 @@ window.PLACES=[
   },
   {
     "id": "library-harbourfront",
-    "name": "library@harbourfront — sea-view reading",
+    "name": "library@harbourfront : sea-view reading",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
-      "solo",
-      "free"
+      "free",
+      "solo"
     ],
     "distance": 2,
     "minutes": 90,
@@ -2547,12 +2451,13 @@ window.PLACES=[
   },
   {
     "id": "esplanade-library",
-    "name": "Esplanade — arts & performance outing",
+    "name": "Esplanade : arts & performance outing",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
-      "solo",
-      "friends"
+      "friends",
+      "solo"
     ],
     "distance": 3,
     "minutes": 120,
@@ -2566,9 +2471,10 @@ window.PLACES=[
   },
   {
     "id": "the-projector",
-    "name": "The Projector — indie cinema",
+    "name": "The Projector : indie cinema",
     "category": "escape",
     "tags": [
+      "arts",
       "culture",
       "friends",
       "solo"
@@ -2585,12 +2491,12 @@ window.PLACES=[
   },
   {
     "id": "cat-socrates",
-    "name": "Cat Socrates — independent gift shop",
+    "name": "Cat Socrates : independent gift shop",
     "category": "escape",
     "tags": [
+      "friends",
       "shopping",
-      "solo",
-      "friends"
+      "solo"
     ],
     "distance": 3,
     "minutes": 90,
@@ -2604,13 +2510,14 @@ window.PLACES=[
   },
   {
     "id": "bras-basah",
-    "name": "Bras Basah Complex — bookshop hunt",
+    "name": "Bras Basah Complex : bookshop hunt",
     "category": "escape",
     "tags": [
-      "shopping",
+      "arts",
       "culture",
+      "free",
       "friends",
-      "free"
+      "shopping"
     ],
     "distance": 3,
     "minutes": 120,
@@ -2623,31 +2530,13 @@ window.PLACES=[
     "hiddenGem": true
   },
   {
-    "id": "queensway",
-    "name": "Queensway Shopping Centre — retro shopping",
-    "category": "escape",
-    "tags": [
-      "shopping",
-      "friends",
-      "free"
-    ],
-    "distance": 2,
-    "minutes": 120,
-    "description": "Hunt for sportswear, sneakers and old-school mall finds.",
-    "location": "Queensway Shopping Centre, Singapore",
-    "note": "Browsing is free; shopping spend varies.",
-    "image": "nature",
-    "source": "",
-    "budget": 0,
-    "hiddenGem": true
-  },
-  {
     "id": "old-airport",
-    "name": "Old Airport Road Food Centre — food crawl",
+    "name": "Old Airport Road Food Centre : food crawl",
     "category": "escape",
     "tags": [
       "cafe",
-      "friends"
+      "friends",
+      "sweet"
     ],
     "distance": 3,
     "minutes": 150,
@@ -2661,12 +2550,13 @@ window.PLACES=[
   },
   {
     "id": "pulau-ubin",
-    "name": "Pulau Ubin — cycling adventure",
+    "name": "Pulau Ubin : cycling adventure",
     "category": "escape",
     "tags": [
+      "active",
       "adventure",
-      "nature",
-      "friends"
+      "friends",
+      "nature"
     ],
     "distance": 3,
     "minutes": 360,
@@ -2679,96 +2569,376 @@ window.PLACES=[
     "hiddenGem": true
   },
   {
-    "id": "bouldering",
-    "name": "Bouldering gym outing — west Singapore",
+    "id": "escape-genz-1",
+    "name": "Teo Heng KTV Studio, The Star Vista",
     "category": "escape",
     "tags": [
-      "games",
-      "adventure",
-      "friends"
+      "friends",
+      "indoor",
+      "karaoke",
+      "music"
     ],
     "distance": 2,
-    "minutes": 150,
-    "description": "Try indoor climbing with friends for a more active study break.",
-    "location": "Bouldering gym, west Singapore",
-    "note": "Choose and verify a specific operating gym before publishing; this is an activity lead, not a venue listing.",
-    "image": "nature",
-    "source": "",
-    "budget": 30,
-    "hiddenGem": true
+    "minutes": 120,
+    "budget": 18,
+    "description": "Book a private karaoke room with friends at The Star Vista.",
+    "location": "The Star Vista, Buona Vista",
+    "source": "https://www.ktvteoheng.com.sg/outlets/the-star-vista",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
   },
   {
-    "id": "bowling-west",
-    "name": "Bowling outing — west Singapore",
+    "id": "escape-genz-2",
+    "name": "K.STAR Karaoke, Plaza Singapura",
     "category": "escape",
     "tags": [
-      "games",
-      "friends"
-    ],
-    "distance": 2,
-    "minutes": 150,
-    "description": "An easy competitive break with friends.",
-    "location": "Bowling alley, west Singapore",
-    "note": "Choose and verify a specific bowling venue, lanes and pricing before publishing.",
-    "image": "nature",
-    "source": "",
-    "budget": 30,
-    "hiddenGem": true
-  },
-  {
-    "id": "pottery-workshop",
-    "name": "Pottery workshop — Singapore",
-    "category": "escape",
-    "tags": [
-      "culture",
-      "adventure",
-      "friends"
+      "friends",
+      "indoor",
+      "karaoke",
+      "music"
     ],
     "distance": 3,
-    "minutes": 180,
-    "description": "Make something with your hands and switch off from revision.",
-    "location": "Pottery workshop, Singapore",
-    "note": "Choose a specific studio and verify booking, duration and pricing before publishing.",
-    "image": "nature",
-    "source": "",
-    "budget": 99,
-    "hiddenGem": true
+    "minutes": 120,
+    "budget": 30,
+    "description": "A themed karaoke outing in the Dhoby Ghaut area.",
+    "location": "Plaza Singapura, Dhoby Ghaut",
+    "source": "https://www.kstar.com.sg/",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
   },
   {
-    "id": "boardgame-cafe",
-    "name": "Board-game café outing — Singapore",
+    "id": "escape-genz-3",
+    "name": "Timezone, Westgate",
     "category": "escape",
     "tags": [
+      "arcade",
+      "friends",
       "games",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 90,
+    "budget": 20,
+    "description": "Play arcade and rhythm games at Westgate in Jurong East.",
+    "location": "Westgate, Jurong East",
+    "source": "https://www.timezonegames.com/en-sg/locations/west/timezone-westgate/",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-4",
+    "name": "Pixels & Pieces",
+    "category": "escape",
+    "tags": [
+      "arcade",
+      "friends",
+      "games",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 120,
+    "budget": 15,
+    "description": "Try board games and console gaming with friends in Chinatown.",
+    "location": "Chinatown, Singapore",
+    "source": "https://www.google.com/maps/search/?api=1&query=Pixels+and+Pieces+Chinatown",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-5",
+    "name": "ME Games, Chinatown",
+    "category": "escape",
+    "tags": [
+      "arcade",
+      "friends",
+      "games",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 90,
+    "budget": 20,
+    "description": "Try console, VR and arcade games in Chinatown.",
+    "location": "Chinatown, Singapore",
+    "source": "https://www.google.com/maps/search/?api=1&query=ME+Games+Chinatown",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-6",
+    "name": "Standard Photo Studio, Bugis",
+    "category": "escape",
+    "tags": [
+      "friends",
+      "indoor",
+      "photos",
+      "shopping"
+    ],
+    "distance": 3,
+    "minutes": 45,
+    "budget": 15,
+    "description": "Take themed photo strips in the Bugis area.",
+    "location": "Bugis, Singapore",
+    "source": "https://www.google.com/maps/search/?api=1&query=Standard+Photo+Studio+Bugis",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-7",
+    "name": "WEARE, Queensway Shopping Centre",
+    "category": "escape",
+    "tags": [
+      "friends",
+      "indoor",
+      "photos",
+      "shopping"
+    ],
+    "distance": 2,
+    "minutes": 90,
+    "budget": 15,
+    "description": "Browse second-hand clothing and look for vintage finds at Queensway.",
+    "location": "Queensway Shopping Centre, Queenstown",
+    "source": "https://www.google.com/maps/search/?api=1&query=WEARE+Queensway+Shopping+Centre",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-8",
+    "name": "SingaporeBowling @ Rifle Range",
+    "category": "escape",
+    "tags": [
+      "active",
+      "friends",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 120,
+    "budget": 25,
+    "description": "Go bowling with friends at Rifle Range Road. Check public lane access.",
+    "location": "131 Rifle Range Road, Bukit Timah",
+    "source": "https://www.google.com/maps/search/?api=1&query=SingaporeBowling+Rifle+Range",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-9",
+    "name": "The Projector, Golden Mile Tower",
+    "category": "escape",
+    "tags": [
+      "arts",
+      "friends",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 150,
+    "budget": 20,
+    "description": "Catch an independent film at an alternative cinema. Check the current screening location.",
+    "location": "Golden Mile Tower, Beach Road",
+    "source": "https://theprojector.sg/",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-10",
+    "name": "Cat Socrates, Bras Basah",
+    "category": "escape",
+    "tags": [
+      "friends",
+      "indoor",
+      "photos",
+      "shopping"
+    ],
+    "distance": 3,
+    "minutes": 60,
+    "budget": 20,
+    "description": "Browse quirky gifts and illustrated stationery in Bras Basah.",
+    "location": "Bras Basah Complex, Singapore",
+    "source": "https://www.google.com/maps/search/?api=1&query=Cat+Socrates+Bras+Basah",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-11",
+    "name": "National Gallery Singapore",
+    "category": "escape",
+    "tags": [
+      "arts",
+      "friends",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 150,
+    "budget": 20,
+    "description": "Explore art exhibitions in the Civic District. Admission varies.",
+    "location": "1 St Andrew’s Road, Civic District",
+    "source": "https://www.nationalgallery.sg/",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-12",
+    "name": "NUS Museum",
+    "category": "escape",
+    "tags": [
+      "arts",
+      "friends",
+      "indoor"
+    ],
+    "distance": 1,
+    "minutes": 60,
+    "budget": 0,
+    "description": "Explore a campus museum for a short change of scenery.",
+    "location": "NUS, Kent Ridge",
+    "source": "https://museum.nus.edu.sg/",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-13",
+    "name": "Haw Par Villa",
+    "category": "escape",
+    "tags": [
+      "arts",
+      "friends",
+      "indoor"
+    ],
+    "distance": 2,
+    "minutes": 90,
+    "budget": 0,
+    "description": "Explore unusual mythology sculptures near the west side. Ticketed areas cost extra.",
+    "location": "262 Pasir Panjang Road, Pasir Panjang",
+    "source": "https://www.hawparvilla.sg/",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-14",
+    "name": "Science Centre Singapore",
+    "category": "escape",
+    "tags": [
+      "arts",
+      "friends",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 150,
+    "budget": 20,
+    "description": "Explore hands-on science exhibits in Jurong East.",
+    "location": "15 Science Centre Road, Jurong East",
+    "source": "https://www.science.edu.sg/",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-15",
+    "name": "Singapore Art Museum, Tanjong Pagar Distripark",
+    "category": "escape",
+    "tags": [
+      "arts",
+      "friends",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 120,
+    "budget": 20,
+    "description": "See contemporary art exhibitions in an industrial setting.",
+    "location": "39 Keppel Road, Tanjong Pagar",
+    "source": "https://www.singaporeartmuseum.sg/",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-16",
+    "name": "The Mind Cafe, Prinsep Street",
+    "category": "escape",
+    "tags": [
+      "arcade",
+      "friends",
+      "games",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 120,
+    "budget": 25,
+    "description": "Spend an afternoon playing board games with friends.",
+    "location": "Prinsep Street, Dhoby Ghaut",
+    "source": "https://www.google.com/maps/search/?api=1&query=The+Mind+Cafe+Prinsep+Street",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-17",
+    "name": "The Potters Guilt",
+    "category": "escape",
+    "tags": [
+      "arts",
+      "creative",
+      "friends",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 150,
+    "budget": 55,
+    "description": "Try a pottery workshop. Confirm the current studio address and booking schedule.",
+    "location": "Singapore",
+    "source": "https://www.google.com/maps/search/?api=1&query=The+Potters+Guilt+Singapore",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-18",
+    "name": "Art Jamming at Arteastiq",
+    "category": "escape",
+    "tags": [
+      "arts",
+      "creative",
+      "friends",
+      "indoor"
+    ],
+    "distance": 3,
+    "minutes": 150,
+    "budget": 55,
+    "description": "Try a guided or freestyle painting session. Confirm session prices.",
+    "location": "Mandarin Gallery, Orchard",
+    "source": "https://www.google.com/maps/search/?api=1&query=Arteastiq+Mandarin+Gallery",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
+  },
+  {
+    "id": "escape-genz-19",
+    "name": "Gelatolabo, Holland Village",
+    "category": "escape",
+    "tags": [
       "cafe",
-      "friends"
+      "friends",
+      "indoor",
+      "sweet"
     ],
-    "distance": 3,
-    "minutes": 150,
-    "description": "A social break that works for a group with different interests.",
-    "location": "Board game cafe, Singapore",
-    "note": "Choose a specific café and verify table fees and food minimums before publishing.",
-    "image": "nature",
-    "source": "",
-    "budget": 30,
-    "hiddenGem": true
+    "distance": 2,
+    "minutes": 60,
+    "budget": 15,
+    "description": "Take a dessert break and try gelato around Holland Village.",
+    "location": "Holland Village, Singapore",
+    "source": "https://www.google.com/maps/search/?api=1&query=Gelatolabo+Holland+Village",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
   },
   {
-    "id": "karaoke-outing",
-    "name": "Karaoke outing — Singapore",
+    "id": "escape-genz-20",
+    "name": "Burnt Cones, Sunset Way",
     "category": "escape",
     "tags": [
-      "games",
-      "friends"
+      "cafe",
+      "friends",
+      "indoor",
+      "sweet"
     ],
-    "distance": 3,
-    "minutes": 150,
-    "description": "A loud, silly break from revision with your friends.",
-    "location": "Karaoke venue, Singapore",
-    "note": "Choose a specific venue and verify per-person charges before publishing.",
-    "image": "nature",
-    "source": "",
-    "budget": 30,
-    "hiddenGem": true
+    "distance": 2,
+    "minutes": 60,
+    "budget": 15,
+    "description": "Get gelato or waffles around Sunset Way.",
+    "location": "Sunset Way, Clementi",
+    "source": "https://www.google.com/maps/search/?api=1&query=Burnt+Cones+Sunset+Way",
+    "hiddenGem": true,
+    "note": "Suggested budget is a rough planning estimate, not a confirmed price. Verify current operating status, booking, charges and access before visiting."
   }
 ];
