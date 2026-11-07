@@ -1,944 +1,721 @@
 
 /*
-  PGPR PICKS — FIND YOUR PICK
-  Complete app.js replacement
-
-  Requires:
-  - index.html with #app, #homeLink, #savedBtn, #savedCount
-  - places.js loaded before app.js
-  - window.PLACES or global PLACES array
-
-  No external JavaScript libraries required.
+  PGPR PICKS V12
+  Discover, Shortlist, Decide
+  Replace your entire app.js with this script.
+  Requires existing index.html and places.js.
 */
 
 (() => {
   "use strict";
 
-  // --------------------------------------------------
-  // 1. SETUP
-  // --------------------------------------------------
-
-  const $ = (selector) => document.querySelector(selector);
-
+  const $ = s => document.querySelector(s);
   const app = $("#app");
 
   if (!app) {
-    console.error("PGPR Picks: #app element not found.");
+    console.error("PGPR Picks requires #app");
     return;
   }
 
-  const places =
-    typeof PLACES !== "undefined" && Array.isArray(PLACES)
+  const places = Array.isArray(window.PLACES)
+    ? window.PLACES
+    : typeof PLACES !== "undefined" && Array.isArray(PLACES)
       ? PLACES
-      : Array.isArray(window.PLACES)
-      ? window.PLACES
       : [];
 
-  const STORAGE_KEY = "pgpr-picks-saved";
+  const KEY = "pgpr-picks-saved";
 
-  function loadSaved() {
-    try {
-      const current = localStorage.getItem(STORAGE_KEY);
-      const legacy = localStorage.getItem("pgp-picks-saved");
-      const parsed = JSON.parse(current || legacy || "[]");
-      return new Set(Array.isArray(parsed) ? parsed : []);
-    } catch {
-      return new Set();
-    }
+  let saved;
+  try {
+    saved = new Set(JSON.parse(
+      localStorage.getItem(KEY) ||
+      localStorage.getItem("pgp-picks-saved") ||
+      "[]"
+    ));
+  } catch {
+    saved = new Set();
   }
-
-  const saved = loadSaved();
 
   const state = {
     category: null,
     answers: {},
     step: 0,
-    results: [],
-    view: "swipe",
-    swipeIndex: 0,
+    ranked: [],
+    start: 0,
+    index: 0,
+    liked: [],
     history: [],
-    detailFrom: "results",
-    busy: false
+    view: "swipe",
+    busy: false,
+    detailReturn: null
   };
 
-  // These images are for the homepage and category cards only.
-  // Recommendation cards deliberately have no photographs.
+  // Editorial photos only.
+  // Recommendation cards do not use placeholder photos.
 
-  const images = {
-    hero:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80",
-    eat:
-      "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80",
-    focus:
-      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80",
-    escape:
-      "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=900&q=80"
+  const photos = {
+    hero: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80",
+    eat: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80",
+    focus: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80",
+    escape: "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=900&q=80"
   };
 
-  const categoryNames = {
-    eat: "EAT",
-    focus: "FOCUS",
-    escape: "ESCAPE"
-  };
+  // Consistent SVG icons instead of emoji-style arrows.
 
-  // --------------------------------------------------
-  // 2. UTILITIES
-  // --------------------------------------------------
+  function icon(name) {
+    const paths = {
+      up: '<path d="M7 17 17 7M7 7h10v10"/>',
+      left: '<path d="m15 18-6-6 6-6"/>',
+      right: '<path d="m9 18 6-6-6-6"/>',
+      heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
+      x: '<path d="M18 6 6 18M6 6l12 12"/>',
+      undo: '<path d="M9 14 4 9l5-5M4 9h10a6 6 0 1 1 0 12h-2"/>'
+    };
 
-  function escapeHTML(value) {
-    return String(value ?? "").replace(
-      /[&<>"']/g,
-      (character) =>
-        ({
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-          "'": "&#39;"
-        })[character]
-    );
-  }
-
-  function mapsURL(place) {
-    return (
-      "https://www.google.com/maps/search/?api=1&query=" +
-      encodeURIComponent(
-        `${place.name} ${place.location || "Singapore"}`
-      )
-    );
-  }
-
-  function saveSync() {
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify([...saved])
-      );
-    } catch (error) {
-      console.warn("Could not save bookmarks:", error);
-    }
-
-    const count = $("#savedCount");
-
-    if (count) {
-      count.textContent = saved.size;
-    }
-  }
-
-  function setSaved(id, shouldSave) {
-    if (shouldSave) {
-      saved.add(id);
-    } else {
-      saved.delete(id);
-    }
-
-    saveSync();
-  }
-
-  function toggleSaved(id) {
-    setSaved(id, !saved.has(id));
-    return saved.has(id);
-  }
-
-  function scrollTop() {
-    window.scrollTo({
-      top: 0,
-      behavior: "instant"
-    });
-  }
-
-  function shell(content) {
-    app.innerHTML = `
-      <div class="pgp-wrap">
-        ${content}
-      </div>
+    return `
+      <svg
+        viewBox="0 0 24 24"
+        width="17"
+        height="17"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        ${paths[name] || paths.up}
+      </svg>
     `;
+  }
 
-    scrollTop();
+  const e = value => String(value ?? "").replace(
+    /[&<>"']/g,
+    c => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[c]
+  );
+
+  const maps = p =>
+    "https://www.google.com/maps/search/?api=1&query=" +
+    encodeURIComponent(
+      p.name + " " + (p.location || "Singapore")
+    );
+
+  const btn = (text, id, cls = "") =>
+    `<button class="pick-btn ${cls}" id="${id}">${text}</button>`;
+
+  function sync() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify([...saved]));
+    } catch {}
+
+    const el = $("#savedCount");
+    if (el) el.textContent = saved.size;
   }
 
   function toast(message) {
-    const old = document.querySelector(".pgpr-toast");
+    document.querySelector(".pick-toast")?.remove();
 
-    if (old) old.remove();
+    const el = document.createElement("div");
+    el.className = "pick-toast";
+    el.textContent = message;
+    document.body.append(el);
 
-    const element = document.createElement("div");
-
-    element.className = "pgpr-toast";
-    element.textContent = message;
-
-    document.body.appendChild(element);
-
-    requestAnimationFrame(() => {
-      element.classList.add("visible");
-    });
-
-    setTimeout(() => {
-      element.classList.remove("visible");
-      setTimeout(() => element.remove(), 250);
-    }, 1800);
+    setTimeout(() => el.remove(), 1800);
   }
 
-  function sharePlace(place) {
-    const text = `${place.name} — ${mapsURL(place)}`;
-
-    if (navigator.share) {
-      navigator.share({
-        title: "PGPR Picks",
-        text
-      }).catch(() => {});
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(text)
-        .then(() => toast("Link copied!"))
-        .catch(() => toast("Unable to copy link."));
-    } else {
-      toast("Sharing isn't available in this browser.");
-    }
+  function shell(html) {
+    app.innerHTML = `<div class="pick-wrap">${html}</div>`;
+    window.scrollTo(0, 0);
   }
 
-  // --------------------------------------------------
-  // 3. VERIFIED STUDY ACCESS
-  // --------------------------------------------------
+  // QUESTIONNAIRES
 
-  function verifiedLate(place) {
-    if (place.category !== "focus") return false;
-
-    if (place.accessStatus !== "official") return false;
-
-    const mode = place.accessMode;
-
-    if (mode === "always") return true;
-
-    if (mode === "term") {
-      // Term-time access is not assumed to be valid
-      // outside its documented period.
-      return false;
-    }
-
-    if (mode === "exam") {
-      const deadline = new Date(
-        "2026-12-04T23:59:59+08:00"
-      );
-
-      return new Date() <= deadline;
-    }
-
-    return false;
-  }
-
-  function hasFacility(place, facility) {
-    const tags = place.tags || [];
-
-    if (facility === "late") {
-      return verifiedLate(place);
-    }
-
-    if (facility === "power") {
-      return (
-        (place.verifiedFacilities || []).includes("power") ||
-        place.powerStatus === "general-library-guidance"
-      );
-    }
-
-    return tags.includes(facility);
-  }
-
-  // --------------------------------------------------
-  // 4. QUESTIONNAIRES
-  // --------------------------------------------------
-
-  const questions = {
+  const qs = {
     eat: [
-      {
-        title: "How much damage can your wallet take?",
-        key: "budget",
-        options: [
+      [
+        "budget",
+        "What is your budget?",
+        [
           ["5", "Under $5"],
-          ["10", "$5–10"],
-          ["20", "$10–20"],
-          ["999", "$20+"]
+          ["10", "$5 to $10"],
+          ["20", "$10 to $20"],
+          ["999", "Over $20"]
         ]
-      },
-      {
-        title: "What are we craving?",
-        key: "craving",
-        options: [
+      ],
+      [
+        "craving",
+        "What are we craving?",
+        [
           ["local", "Local favourites"],
           ["spicy", "Spicy food"],
           ["hearty", "Comfort food"],
           ["light", "Something light"],
-          ["sweet", "Desserts & cafés"],
+          ["sweet", "Desserts and cafes"],
           ["any", "Surprise me"]
         ]
-      },
-      {
-        title: "How far are we going?",
-        key: "distance",
-        options: [
+      ],
+      [
+        "distance",
+        "How far are we going?",
+        [
           ["0", "At PGPR"],
           ["1", "On campus"],
           ["2", "Nearby"],
           ["3", "Anywhere worth the trip"]
         ]
-      }
+      ]
     ],
 
     focus: [
-      {
-        title: "What's your ideal study atmosphere?",
-        key: "noise",
-        options: [
-          ["quiet", "Silent library energy"],
-          ["buzz", "A little background noise"],
+      [
+        "noise",
+        "Your ideal study atmosphere?",
+        [
+          ["quiet", "Quiet library"],
+          ["buzz", "Background noise"],
           ["group", "Group discussion"],
-          ["outdoor", "Outdoor / open air"]
+          ["outdoor", "Open air"]
         ]
-      },
-      {
-        title: "What do you absolutely need?",
-        key: "facilities",
-        multi: true,
-        options: [
+      ],
+      [
+        "facilities",
+        "What do you need?",
+        [
           ["power", "Charging points"],
-          ["aircon", "Air-conditioning"],
+          ["aircon", "Air conditioning"],
           ["late", "Late-night access"],
-          ["group", "Group study space"],
+          ["group", "Group space"],
           ["food", "Food nearby"]
-        ]
-      },
-      {
-        title: "When are you planning to study?",
-        key: "when",
-        options: [
+        ],
+        true
+      ],
+      [
+        "when",
+        "When are you studying?",
+        [
           ["day", "During the day"],
           ["evening", "Evening"],
           ["late", "After midnight"]
         ]
-      }
+      ]
     ],
 
     escape: [
-      {
-        title: "How much free time do you have?",
-        key: "time",
-        options: [
-          ["30", "15–30 minutes"],
-          ["120", "1–2 hours"],
+      [
+        "time",
+        "How much free time?",
+        [
+          ["30", "15 to 30 minutes"],
+          ["120", "1 to 2 hours"],
           ["240", "Half a day"],
           ["999", "All day"]
         ]
-      },
-      {
-        title: "What's the budget?",
-        key: "budget",
-        options: [
-          ["0", "Free only"],
+      ],
+      [
+        "budget",
+        "What is your budget?",
+        [
+          ["0", "Free"],
           ["10", "Under $10"],
-          ["30", "$10–30"],
-          ["999", "$30+"]
+          ["30", "$10 to $30"],
+          ["999", "Over $30"]
         ]
-      },
-      {
-        title: "What sounds fun?",
-        key: "mood",
-        options: [
+      ],
+      [
+        "mood",
+        "What sounds fun?",
+        [
           ["nature", "Nature"],
           ["explore", "Explore somewhere new"],
-          ["friends", "Games & friends"],
-          ["arts", "Arts & culture"],
-          ["sweet", "Cafés & treats"],
+          ["friends", "Games with friends"],
+          ["arts", "Arts and culture"],
+          ["sweet", "Cafes and treats"],
           ["any", "Surprise me"]
         ]
-      }
+      ]
     ]
   };
 
-  // --------------------------------------------------
-  // 5. APPLICATION STYLES
-  // --------------------------------------------------
+  // STYLING
 
-  const style = document.createElement("style");
+  const css = document.createElement("style");
 
-  style.textContent = `
-    #app {
-      min-height: 65vh;
+  css.textContent = `
+    .pick-wrap {
+      max-width: 1050px;
+      margin: auto;
+      padding: 28px 18px 70px;
+      color: #172b50;
+      font-family: "DM Sans", Arial, sans-serif;
     }
 
-    .pgp-wrap {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 42px 24px 70px;
+    .pick-wrap * {
+      box-sizing: border-box;
+    }
+
+    .pick-title {
+      font: 800 clamp(36px,7vw,78px)/1.02
+        "Space Grotesk", Arial, sans-serif;
+      letter-spacing: -.055em;
+      margin: 18px 0;
+    }
+
+    .pick-kicker {
+      font: 700 12px "IBM Plex Mono", monospace;
+      letter-spacing: .06em;
+    }
+
+    .pick-lead {
+      font-size: 18px;
+      line-height: 1.55;
+      max-width: 620px;
+    }
+
+    .pick-btn {
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      justify-content: center;
+      background: #f26943;
+      color: white;
+      border: 2px solid #172b50;
+      border-radius: 50px;
+      padding: 12px 19px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none;
+      min-height: 44px;
+    }
+
+    .pick-btn.alt {
+      background: #fffaf1;
       color: #172b50;
     }
 
-    .pgp-kicker {
-      font: 600 12px "IBM Plex Mono", monospace;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .pgp-title {
-      font: 700 clamp(42px, 8vw, 100px)/.98
-        "Space Grotesk", sans-serif;
-      letter-spacing: -.065em;
-      margin: 18px 0 22px;
-      max-width: 920px;
-    }
-
-    .pgp-lead {
-      font: 400 clamp(17px, 2vw, 23px)/1.45
-        "DM Sans", sans-serif;
-      max-width: 600px;
-    }
-
-    .pgp-hero {
-      background: #f6b38c;
-      padding: clamp(22px, 5vw, 65px);
-      overflow: hidden;
-      margin: 16px 0 40px;
-    }
-
-    .pgp-hero-photo {
-      width: 100%;
-      height: 220px;
-      object-fit: cover;
-      display: block;
-      margin-top: 24px;
-    }
-
-    .pgp-btn {
-      background: #f36a43;
-      color: #fff;
-      border: 2px solid #172b50;
-      box-shadow: 4px 4px #172b50;
-      border-radius: 40px;
-      padding: 13px 23px;
-      font: 700 14px "DM Sans", sans-serif;
-      cursor: pointer;
-      display: inline-block;
-      text-decoration: none;
-      transition: transform .18s, box-shadow .18s;
-    }
-
-    .pgp-btn:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px #172b50;
-    }
-
-    .pgp-btn:disabled {
+    .pick-btn[disabled] {
       opacity: .4;
       cursor: not-allowed;
     }
 
-    .pgp-secondary {
-      background: #fff9ef;
-      color: #172b50;
-      box-shadow: none;
+    .pick-btn:focus-visible,
+    .pick-option:focus-visible {
+      outline: 3px solid #2b75b8;
+      outline-offset: 3px;
     }
 
-    .pgp-grid {
+    .pick-btn svg {
+      flex-shrink: 0;
+    }
+
+    .pick-hero {
+      background: #f6b38c;
+      padding: clamp(22px,5vw,55px);
+      margin-bottom: 36px;
+    }
+
+    .pick-hero img {
+      width: 100%;
+      height: 225px;
+      object-fit: cover;
+      display: block;
+      margin-top: 22px;
+    }
+
+    .pick-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 15px;
+      margin: 20px 0;
     }
 
-    .pgp-tile {
+    .pick-tile {
       border: 0;
       text-align: left;
-      padding: 0;
-      background: #fff;
-      cursor: pointer;
+      background: #fffaf1;
       color: #172b50;
-      overflow: hidden;
+      padding: 0 0 18px;
+      cursor: pointer;
     }
 
-    .pgp-tile img {
+    .pick-tile img {
       width: 100%;
-      height: 230px;
+      height: 210px;
       object-fit: cover;
       display: block;
     }
 
-    .pgp-tile strong {
+    .pick-tile strong {
       display: block;
-      font: 700 31px "Space Grotesk", sans-serif;
-      padding: 15px 15px 0;
+      font-size: 28px;
+      padding: 14px 14px 4px;
     }
 
-    .pgp-tile small {
-      display: block;
-      padding: 4px 15px 18px;
+    .pick-tile small {
+      padding: 0 14px;
     }
 
-    .pgp-panel {
+    .pick-panel {
       background: #fffaf1;
-      padding: clamp(22px, 5vw, 48px);
-      border: 1px solid #d9cdbd;
-      margin: 24px 0;
+      border: 1px solid #ded1be;
+      padding: clamp(20px,4vw,40px);
+      margin: 20px 0;
     }
 
-    .pgp-progress {
-      font: 600 12px "IBM Plex Mono", monospace;
-      margin-bottom: 20px;
-    }
-
-    .pgp-options {
+    .pick-options {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(2,1fr);
+      gap: 10px;
       margin: 25px 0;
     }
 
-    .pgp-option {
-      padding: 18px;
+    .pick-option {
+      padding: 16px;
       text-align: left;
-      border: 1.5px solid #172b50;
       background: #fffaf1;
+      border: 2px solid #172b50;
       border-radius: 8px;
-      font: 600 16px "DM Sans", sans-serif;
-      cursor: pointer;
       color: #172b50;
+      font-weight: 700;
+      cursor: pointer;
     }
 
-    .pgp-option.selected {
-      background: #dbe9af;
-      box-shadow: 3px 3px #172b50;
+    .pick-option[aria-pressed="true"] {
+      background: #dce9b5;
     }
 
-    .pgp-actions {
+    .pick-row {
       display: flex;
+      gap: 10px;
       flex-wrap: wrap;
-      gap: 12px;
-      margin: 22px 0;
+      align-items: center;
+      margin: 18px 0;
     }
 
-    .pgp-back {
+    .pick-back {
       border: 0;
       background: none;
       color: #172b50;
-      font: 600 13px "DM Sans", sans-serif;
+      font-weight: 700;
       cursor: pointer;
-      margin-bottom: 18px;
       padding: 10px 0;
     }
 
-    .pgp-tag {
-      display: inline-block;
-      background: #dce9b5;
-      padding: 6px 9px;
-      font: 600 11px "IBM Plex Mono", monospace;
-      margin: 4px 5px 4px 0;
+    .pick-muted {
+      color: #596474;
+      font-size: 13px;
+      line-height: 1.55;
     }
 
-    .pgp-note {
-      background: #fff1d4;
-      padding: 12px 15px;
-      margin: 14px 0;
+    .pick-tag {
+      display: inline-block;
+      background: #fffaf1;
+      padding: 8px 11px;
+      font: 700 12px "IBM Plex Mono", monospace;
+    }
+
+    .pick-warning {
+      background: #fff0cf;
+      padding: 12px;
+      margin: 12px 0;
       font-size: 13px;
     }
 
-    .pgp-card {
-      background: #fffaf1;
-      border: 1px solid #ded2c1;
-      overflow: hidden;
+    .pick-stage {
+      max-width: 510px;
+      margin: 22px auto;
     }
 
-    .pgp-card-body {
-      padding: 20px;
-    }
-
-    .pgp-card h3 {
-      font: 700 25px/1.1 "Space Grotesk", sans-serif;
-      margin: 10px 0;
-    }
-
-    .pgp-card p {
-      font: 400 14px/1.5 "DM Sans", sans-serif;
-    }
-
-    .pgp-card .pgp-btn {
-      font-size: 12px;
-      padding: 10px 13px;
-    }
-
-    .pgp-empty {
-      padding: 30px;
-      background: #dbe9b5;
-    }
-
-    .pgp-meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .pgp-meta > div {
-      padding: 15px;
-      background: #f1e8d8;
-    }
-
-    /* SWIPE INTERFACE */
-
-    .match-stage {
-      max-width: 490px;
-      margin: 24px auto 28px;
-      position: relative;
-    }
-
-    .match-counter {
-      text-align: center;
-      font: 600 12px "IBM Plex Mono", monospace;
-      margin-bottom: 14px;
-    }
-
-    .match-instructions {
+    .pick-directions {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 18px;
-      font: 700 13px "DM Sans", sans-serif;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      margin: 14px 0;
     }
 
-    .match-instructions .skip-label {
-      color: #b84040;
+    .pick-directions .pass {
+      color: #a53d3d;
     }
 
-    .match-instructions .save-label {
+    .pick-directions .save {
       color: #287a4b;
     }
 
-    .match-card {
+    .pick-card {
       position: relative;
-      background: #dce9b5;
-      border: 2px solid #172b50;
-      box-shadow: 8px 9px 0 #172b50;
       overflow: hidden;
       touch-action: pan-y;
       user-select: none;
       cursor: grab;
-      will-change: transform;
-      transform: translate3d(0,0,0) rotate(0deg);
-    }
-
-    .match-card.eat {
+      border: 2px solid #172b50;
+      box-shadow: 8px 8px #172b50;
       background: #f4c4a5;
+      padding: 25px;
+      will-change: transform;
     }
 
-    .match-card.focus {
+    .pick-card.focus {
       background: #dce9b5;
     }
 
-    .match-card.escape {
+    .pick-card.escape {
       background: #f2c4d3;
     }
 
-    .match-card.dragging {
-      cursor: grabbing;
-      box-shadow: 12px 15px 0 #172b50;
-    }
-
-    .match-inner {
-      padding: 26px;
-    }
-
-    .match-inner h2 {
-      font: 700 clamp(28px, 5vw, 40px)/1.05
-        "Space Grotesk", sans-serif;
-      margin: 16px 0;
+    .pick-card h2 {
+      font: 800 clamp(28px,5vw,42px)/1.05
+        "Space Grotesk", Arial, sans-serif;
       overflow-wrap: anywhere;
     }
 
-    .match-score {
-      display: inline-block;
-      background: #fffaf1;
-      padding: 9px 12px;
-      font: 700 14px "IBM Plex Mono", monospace;
+    .pick-card details {
+      margin: 16px 0;
     }
 
-    .match-explain {
-      margin-top: 18px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .match-explain summary {
+    .pick-card summary {
       cursor: pointer;
-      font-weight: 700;
-      padding: 8px 0;
+      font-weight: 800;
     }
 
-    .swipe-indicator {
+    .pick-stamp {
       position: absolute;
-      top: 24px;
-      right: 20px;
-      padding: 10px 18px;
+      right: 15px;
+      top: 15px;
       border: 4px solid currentColor;
-      border-radius: 8px;
-      font: 800 26px "Space Grotesk", sans-serif;
+      padding: 8px;
+      background: #fff;
+      font-weight: 900;
+      font-size: 22px;
       opacity: 0;
       pointer-events: none;
-      z-index: 10;
-      transform: rotate(9deg);
-      transition: opacity .08s;
     }
 
-    .swipe-indicator.save {
+    .pick-stamp.pass {
+      color: #a53d3d;
+    }
+
+    .pick-stamp.save {
       color: #287a4b;
-      background: #e3f4d8;
     }
 
-    .swipe-indicator.skip {
-      color: #b84040;
-      background: #ffe1de;
-      transform: rotate(-9deg);
+    .pick-card .pick-row {
+      position: relative;
+      z-index: 1;
     }
 
-    .match-actions {
+    .pick-actions {
       display: flex;
       justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin: 26px auto;
-    }
-
-    .match-actions button {
-      min-width: 105px;
-    }
-
-    .match-view-toggle {
-      display: flex;
       gap: 10px;
-      margin: 22px 0;
       flex-wrap: wrap;
+      margin: 24px 0;
     }
 
-    .match-view-toggle button[aria-pressed="true"] {
+    .pick-counter {
+      text-align: center;
+      font: 700 12px "IBM Plex Mono", monospace;
+      margin: 12px 0;
+    }
+
+    .pick-result {
+      background: #fffaf1;
+      border: 1px solid #d8cbb9;
+      padding: 20px;
+    }
+
+    .pick-result h3 {
+      font-size: 23px;
+      margin: 10px 0;
+    }
+
+    .pick-feature {
+      background: #dce9b5;
+      padding: 25px;
+      margin: 18px 0;
+    }
+
+    .pick-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
       background: #172b50;
       color: #fff;
-    }
-
-    .pgp-disclaimer {
-      font-size: 12px;
-      color: #5b6470;
-      margin-top: 20px;
-      line-height: 1.6;
-    }
-
-    .pgpr-toast {
-      position: fixed;
-      bottom: 28px;
-      left: 50%;
-      transform: translate(-50%, 20px);
-      background: #172b50;
-      color: white;
       padding: 14px 22px;
       border-radius: 30px;
-      font: 600 14px "DM Sans", sans-serif;
-      opacity: 0;
-      transition: opacity .2s, transform .2s;
       z-index: 9999;
-      pointer-events: none;
+      white-space: nowrap;
     }
 
-    .pgpr-toast.visible {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
-
-    @media (max-width: 720px) {
-      .pgp-wrap {
-        padding: 22px 15px 50px;
-      }
-
-      .pgp-grid {
+    @media(max-width:720px) {
+      .pick-grid,
+      .pick-options {
         grid-template-columns: 1fr;
       }
 
-      .pgp-tile img {
-        height: 180px;
-      }
-
-      .pgp-options {
-        grid-template-columns: 1fr;
-      }
-
-      .pgp-hero-photo {
+      .pick-hero img {
         height: 160px;
       }
 
-      .pgp-meta {
-        grid-template-columns: 1fr;
+      .pick-tile img {
+        height: 170px;
       }
 
-      .pgp-title {
-        font-size: clamp(39px, 12vw, 65px);
-      }
-
-      .match-inner {
+      .pick-card {
         padding: 20px;
       }
 
-      .match-actions button {
-        min-width: 85px;
+      .pick-wrap {
+        padding: 20px 15px 60px;
       }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .match-card,
-      .pgp-btn {
+    @media(prefers-reduced-motion:reduce) {
+      .pick-card {
         transition-duration: .01ms !important;
       }
     }
   `;
 
-  document.head.appendChild(style);
+  document.head.append(css);
 
-  // --------------------------------------------------
-  // 6. HOMEPAGE
-  // --------------------------------------------------
+  // HOMEPAGE
 
   function home() {
     state.category = null;
-    state.busy = false;
 
     shell(`
-      <div class="pgp-hero">
-        <div class="pgp-kicker">
+      <section class="pick-hero">
+        <div class="pick-kicker">
           PGPR PICKS / FINALS SURVIVAL GUIDE
         </div>
 
-        <h1 class="pgp-title">
+        <h1 class="pick-title">
           TOO MUCH STUDYING.<br>
           NOT ENOUGH LIVING.
         </h1>
 
-        <p class="pgp-lead">
-          Good food, better study spots and little escapes —
-          picked for PGPR residents.
+        <p class="pick-lead">
+          Good food, better study spots and little escapes,
+          curated for PGPR residents.
         </p>
 
-        <button class="pgp-btn" id="start">
-          FIND YOUR PICK ↗
-        </button>
+        ${btn("FIND YOUR PICK " + icon("right"), "start")}
 
         <img
-          class="pgp-hero-photo"
-          src="${images.hero}"
-          alt="Editorial lifestyle photograph"
+          src="${photos.hero}"
+          alt="Lifestyle editorial photograph"
         >
-      </div>
+      </section>
 
-      <h2>SO, WHAT'S THE PLAN?</h2>
+      <h2>SO, WHAT IS THE PLAN?</h2>
 
-      <div class="pgp-grid">
+      <div class="pick-grid">
         ${[
-          ["eat", "EAT", "Find something good."],
-          ["focus", "FOCUS", "Find your next study spot."],
-          ["escape", "ESCAPE", "Take a proper break."]
-        ].map(([key, title, description]) => `
-          <button class="pgp-tile" data-cat="${key}">
+          ["eat", "EAT", "Find something good"],
+          ["focus", "FOCUS", "Find a study spot"],
+          ["escape", "ESCAPE", "Take a proper break"]
+        ].map(([key, name, description]) => `
+          <button class="pick-tile" data-cat="${key}">
             <img
-              src="${images[key]}"
-              alt="${title} category photograph"
-              loading="lazy"
+              src="${photos[key]}"
+              alt="${name} editorial photograph"
             >
-            <strong>${title} ↗</strong>
+            <strong>${name} ${icon("up")}</strong>
             <small>${description}</small>
           </button>
         `).join("")}
       </div>
 
-      <p class="pgp-disclaimer">
-        Homepage photography is editorial.
-        Open Google Maps for photographs of actual venues.
+      <p class="pick-muted">
+        Category photographs are editorial.
+        Actual venue photographs can be viewed on Google Maps.
       </p>
     `);
 
-    $("#start").onclick = () => {
-      $(".pgp-grid").scrollIntoView({
+    $("#start").onclick = () =>
+      $(".pick-grid").scrollIntoView({
         behavior: "smooth"
       });
-    };
 
     document.querySelectorAll("[data-cat]").forEach(button => {
       button.onclick = () => start(button.dataset.cat);
     });
   }
 
-  // --------------------------------------------------
-  // 7. QUIZ
-  // --------------------------------------------------
-
   function start(category) {
     state.category = category;
     state.answers = {};
     state.step = 0;
-    state.history = [];
-    state.busy = false;
     quiz();
   }
 
-  function quiz() {
-    const question = questions[state.category]?.[state.step];
+  // QUESTIONNAIRE
 
-    if (!question) {
-      results();
+  function quiz() {
+    const q = qs[state.category]?.[state.step];
+
+    if (!q) {
+      prepare();
       return;
     }
 
-    const value = state.answers[question.key];
+    const [key, title, options, multi] = q;
+    const value = state.answers[key];
 
     shell(`
-      <button class="pgp-back" id="back">
-        ← BACK
+      <button class="pick-back" id="back">
+        ${icon("left")} BACK
       </button>
 
-      <div class="pgp-panel">
-        <div class="pgp-progress">
-          ${categoryNames[state.category]}
-          / QUESTION ${state.step + 1} OF 3
+      <section class="pick-panel">
+        <div class="pick-kicker">
+          ${state.category.toUpperCase()}
+          / QUESTION ${state.step + 1}
         </div>
 
-        <h1
-          class="pgp-title"
-          style="font-size:clamp(34px,6vw,64px)"
-        >
-          ${escapeHTML(question.title)}
-        </h1>
+        <h1 class="pick-title">${e(title)}</h1>
 
-        ${question.multi
-          ? "<p>Select as many as you need.</p>"
-          : ""}
+        ${multi ? "<p>Select all that apply.</p>" : ""}
 
-        <div class="pgp-options">
-          ${question.options.map(([key, label]) => {
-            const selected = question.multi
-              ? (value || []).includes(key)
-              : value === key;
+        <div class="pick-options">
+          ${options.map(([v, label]) => {
+            const active = multi
+              ? (value || []).includes(v)
+              : value === v;
 
             return `
               <button
-                class="pgp-option ${selected ? "selected" : ""}"
-                data-answer="${key}"
-                aria-pressed="${selected}"
+                class="pick-option"
+                data-answer="${v}"
+                aria-pressed="${active}"
               >
-                ${escapeHTML(label)}
+                ${e(label)}
               </button>
             `;
           }).join("")}
         </div>
 
-        <button class="pgp-btn" id="next">
-          ${state.step === 2
-            ? "FIND MY PICKS ↗"
-            : "NEXT →"}
-        </button>
-      </div>
+        ${btn(
+          state.step === 2
+            ? "FIND MY PICKS " + icon("up")
+            : "NEXT " + icon("right"),
+          "next"
+        )}
+      </section>
     `);
 
     $("#back").onclick = () => {
-      if (state.step > 0) {
+      if (state.step) {
         state.step--;
         quiz();
       } else {
@@ -948,16 +725,16 @@
 
     document.querySelectorAll("[data-answer]").forEach(button => {
       button.onclick = () => {
-        const key = button.dataset.answer;
+        const v = button.dataset.answer;
 
-        if (question.multi) {
-          const old = state.answers[question.key] || [];
+        if (multi) {
+          const old = state.answers[key] || [];
 
-          state.answers[question.key] = old.includes(key)
-            ? old.filter(item => item !== key)
-            : [...old, key];
+          state.answers[key] = old.includes(v)
+            ? old.filter(x => x !== v)
+            : [...old, v];
         } else {
-          state.answers[question.key] = key;
+          state.answers[key] = v;
         }
 
         quiz();
@@ -965,8 +742,8 @@
     });
 
     $("#next").onclick = () => {
-      if (!question.multi && !state.answers[question.key]) {
-        toast("Choose an answer first.");
+      if (!multi && !state.answers[key]) {
+        toast("Choose an answer first");
         return;
       }
 
@@ -975,517 +752,604 @@
       if (state.step < 3) {
         quiz();
       } else {
-        results();
+        prepare();
       }
     };
   }
 
-  // --------------------------------------------------
-  // 8. MATCHING
-  // --------------------------------------------------
+  // MATCHING
 
-  function matchPlace(place) {
-    const answers = state.answers;
-    const category = state.category;
-    const tags = place.tags || [];
+  function lateOK(p) {
+    if (
+      p.category !== "focus" ||
+      p.accessStatus !== "official"
+    ) {
+      return false;
+    }
 
-    let score = 0;
-    const notes = [];
-    const reasons = [];
+    if (p.accessMode === "always") return true;
 
-    if (category === "eat") {
-      const budget = Number(answers.budget);
-      const distance = Number(answers.distance);
+    if (p.accessMode === "exam") {
+      return Date.now() <= new Date(
+        "2026-12-04T23:59:59+08:00"
+      ).getTime();
+    }
 
-      if (
-        answers.craving === "any" ||
-        tags.includes(answers.craving)
-      ) {
-        score += 40;
-        reasons.push("Matches your food preference");
-      }
+    return false;
+  }
 
-      if (place.budget <= budget) {
-        score += 35;
-        reasons.push("Within your selected budget");
-      } else {
-        notes.push("Estimated cost may exceed your budget");
-      }
+  function facility(p, requirement) {
+    if (requirement === "late") {
+      return lateOK(p);
+    }
 
-      if (place.distance <= distance) {
-        score += 25;
-        reasons.push("Within your preferred distance");
-      } else {
-        notes.push("Farther than your preferred distance");
+    if (requirement === "power") {
+      return (p.verifiedFacilities || []).includes("power");
+    }
+
+    return (p.tags || []).includes(requirement);
+  }
+
+  function score(p) {
+    const a = state.answers;
+    const tags = p.tags || [];
+
+    let points = 0;
+    const good = [];
+    const bad = [];
+
+    function add(ok, weight, yes, no) {
+      if (ok) {
+        points += weight;
+        if (yes) good.push(yes);
+      } else if (no) {
+        bad.push(no);
       }
     }
 
-    if (category === "escape") {
-      if (
-        answers.mood === "any" ||
-        tags.includes(answers.mood)
-      ) {
-        score += 40;
-        reasons.push("Matches your preferred activity");
-      }
+    if (state.category === "eat") {
+      add(
+        a.craving === "any" || tags.includes(a.craving),
+        40,
+        "Matches your craving"
+      );
 
-      if (place.budget <= Number(answers.budget)) {
-        score += 30;
-        reasons.push("Within your selected budget");
-      } else {
-        notes.push("Estimated cost may exceed your budget");
-      }
+      add(
+        Number(p.budget) <= Number(a.budget),
+        35,
+        "Within your budget",
+        "Estimated cost may exceed your budget"
+      );
 
-      if (place.minutes <= Number(answers.time)) {
-        score += 30;
-        reasons.push("Fits your available time");
-      } else {
-        notes.push("May take longer than your available time");
-      }
+      add(
+        Number(p.distance) <= Number(a.distance),
+        25,
+        "Within your travel range",
+        "Farther than preferred"
+      );
     }
 
-    if (category === "focus") {
-      if (tags.includes(answers.noise)) {
-        score += 35;
-        reasons.push("Matches your preferred study atmosphere");
-      } else {
-        notes.push("Different study atmosphere");
-      }
+    if (state.category === "escape") {
+      add(
+        a.mood === "any" || tags.includes(a.mood),
+        40,
+        "Matches your activity interest"
+      );
 
-      const requirements = answers.facilities || [];
+      add(
+        Number(p.budget) <= Number(a.budget),
+        30,
+        "Within your budget",
+        "Estimated cost may exceed your budget"
+      );
+
+      add(
+        Number(p.minutes) <= Number(a.time),
+        30,
+        "Fits your available time",
+        "May take longer than planned"
+      );
+    }
+
+    if (state.category === "focus") {
+      add(
+        tags.includes(a.noise),
+        35,
+        "Matches your study atmosphere",
+        "Different study atmosphere"
+      );
+
+      const requirements = a.facilities || [];
 
       if (!requirements.length) {
-        score += 40;
-      } else {
-        for (const requirement of requirements) {
-          if (hasFacility(place, requirement)) {
-            score += 40 / requirements.length;
-            reasons.push(
-              requirement === "power"
-                ? "Charging facilities listed"
-                : requirement === "late"
-                ? "Documented late-night access"
-                : `${requirement} preference matched`
-            );
-          } else {
-            notes.push(
-              requirement === "late"
-                ? "Late-night access not verified"
-                : requirement === "power"
-                ? "Charging points not confirmed"
-                : `${requirement} not confirmed`
-            );
-          }
-        }
+        points += 40;
+      }
+
+      for (const requirement of requirements) {
+        add(
+          facility(p, requirement),
+          40 / requirements.length,
+          "Matches " + requirement,
+          (
+            requirement === "late"
+              ? "Late-night access"
+              : requirement === "power"
+                ? "Charging points"
+                : requirement
+          ) + " not verified"
+        );
       }
 
       if (
-        answers.when === "late" ||
+        a.when === "late" ||
         requirements.includes("late")
       ) {
-        if (verifiedLate(place)) {
-          score += 25;
-          reasons.push("Documented late-night study access");
-        } else if (!notes.includes("Late-night access not verified")) {
-          notes.push("Late-night access not verified");
-        }
+        add(
+          lateOK(p),
+          25,
+          "Documented late-night access",
+          "Late-night access not verified"
+        );
       } else {
-        score += 25;
+        points += 25;
       }
     }
 
     return {
-      ...place,
-      score: Math.min(100, Math.round(score)),
-      notes,
-      reasons,
-      exact: notes.length === 0
+      ...p,
+      score: Math.round(points),
+      good,
+      bad,
+      exact: bad.length === 0
     };
   }
 
-  function rankPlaces() {
-    return places
-      .filter(place => place.category === state.category)
-      .map(matchPlace)
-      .sort((a, b) => {
-        return (
-          Number(b.exact) - Number(a.exact) ||
-          b.score - a.score ||
-          (a.distance || 0) - (b.distance || 0)
-        );
-      });
+  function prepare() {
+    state.ranked = places
+      .filter(p => p.category === state.category)
+      .map(score)
+      .sort((a, b) =>
+        Number(b.exact) - Number(a.exact) ||
+        b.score - a.score ||
+        (a.distance || 0) - (b.distance || 0)
+      );
+
+    state.start = 0;
+    state.index = 0;
+    state.liked = [];
+    state.history = [];
+    state.view = "swipe";
+    state.busy = false;
+
+    render();
   }
 
-  // --------------------------------------------------
-  // 9. RESULTS CARDS (NO PLACEHOLDER PHOTOS)
-  // --------------------------------------------------
+  // DISCOVERY BATCHES
 
-  function resultCard(place) {
+  const batch = () =>
+    state.ranked.slice(state.start, state.start + 5);
+
+  const current = () =>
+    batch()[state.index];
+
+  const shortlist = () =>
+    state.ranked.filter(p => state.liked.includes(p.id));
+
+  function resultCard(p) {
     return `
-      <article class="pgp-card ${place.category}">
-        <div class="pgp-card-body">
-          <span class="pgp-tag">
-            ${place.score}% PREFERENCE MATCH
-          </span>
+      <article class="pick-result">
+        <span class="pick-tag">
+          ${p.score}% PREFERENCE MATCH
+        </span>
 
-          ${place.hiddenGem
-            ? '<span class="pgp-tag">HIDDEN GEM</span>'
-            : ""}
+        <h3>${e(p.name)}</h3>
+        <p>${e(p.description)}</p>
 
-          <h3>${escapeHTML(place.name)}</h3>
+        ${p.bad.length
+          ? `
+            <p class="pick-warning">
+              Check: ${e(p.bad.join("; "))}
+            </p>
+          `
+          : ""}
 
-          <p>${escapeHTML(place.description)}</p>
+        <div class="pick-row">
+          <button
+            class="pick-btn alt"
+            data-detail="${e(p.id)}"
+          >
+            DETAILS ${icon("up")}
+          </button>
 
-          ${place.notes.length
-            ? `
-              <div class="pgp-note">
-                <strong>Before you go:</strong>
-                ${escapeHTML(place.notes.join(" · "))}
-              </div>
-            `
-            : `
-              <span class="pgp-tag">
-                MATCHES SELECTED PREFERENCES
-              </span>
-            `}
-
-          <div class="pgp-actions">
-            <button
-              class="pgp-btn"
-              data-detail="${escapeHTML(place.id)}"
-            >
-              DETAILS ↗
-            </button>
-
-            <button
-              class="pgp-btn pgp-secondary"
-              data-save="${escapeHTML(place.id)}"
-            >
-              ${saved.has(place.id) ? "♥ SAVED" : "♡ SAVE"}
-            </button>
-          </div>
+          <button
+            class="pick-btn"
+            data-add="${e(p.id)}"
+          >
+            ${state.liked.includes(p.id)
+              ? "ADDED"
+              : "ADD TO SHORTLIST"}
+          </button>
         </div>
       </article>
     `;
   }
 
-  function bindResultCards() {
-    document.querySelectorAll("[data-detail]").forEach(button => {
-      button.onclick = () => detail(button.dataset.detail);
-    });
+  // SWIPE CARD
 
-    document.querySelectorAll("[data-save]").forEach(button => {
-      button.onclick = () => {
-        const isSaved = toggleSaved(button.dataset.save);
+  function swipeHTML() {
+    const p = current();
 
-        button.textContent = isSaved
-          ? "♥ SAVED"
-          : "♡ SAVE";
-
-        toast(
-          isSaved
-            ? "Saved to your picks ♡"
-            : "Removed from saved picks"
-        );
-      };
-    });
-  }
-
-  // --------------------------------------------------
-  // 10. SWIPE CARD
-  // --------------------------------------------------
-
-  function swipeCardHTML() {
-    const place = state.results[state.swipeIndex];
-
-    if (!place) {
+    if (!p) {
       return `
-        <div class="pgp-empty">
-          <h2>YOU'VE SEEN EVERY PICK.</h2>
+        <section class="pick-panel">
+          <h2>READY FOR MORE?</h2>
 
           <p>
-            Check your saved places or explore another category.
+            Review your shortlist or discover more places.
           </p>
 
-          <div class="pgp-actions">
-            <button class="pgp-btn" id="viewSaved">
-              ♡ VIEW SAVED
-            </button>
-
-            <button class="pgp-btn pgp-secondary" id="restart">
-              START AGAIN ↗
-            </button>
+          <div class="pick-row">
+            ${btn("VIEW MY SHORTLIST", "finish")}
+            ${btn(
+              "DISCOVER MORE " + icon("right"),
+              "more",
+              "alt"
+            )}
           </div>
-        </div>
+        </section>
       `;
     }
 
     return `
-      <div class="match-stage">
-        <div class="match-counter">
-          PICK ${state.swipeIndex + 1}
-          / ${state.results.length}
+      <div class="pick-stage">
+        <div class="pick-counter">
+          PICK ${String(
+            state.start + state.index + 1
+          ).padStart(2, "0")}
         </div>
 
-        <div class="match-instructions">
-          <span class="skip-label">
-            ← LEFT = SKIP
+        <div class="pick-directions">
+          <span class="pass">
+            ${icon("left")} LEFT: SKIP
           </span>
 
-          <span class="save-label">
-            RIGHT = SAVE →
+          <span class="save">
+            RIGHT: SAVE ${icon("right")}
           </span>
         </div>
 
         <article
-          class="match-card ${place.category}"
           id="swipeCard"
+          class="pick-card ${p.category}"
         >
           <div
-            class="swipe-indicator skip"
-            id="skipIndicator"
+            class="pick-stamp pass"
+            id="passStamp"
           >
-            ✕ SKIP
+            SKIP
           </div>
 
           <div
-            class="swipe-indicator save"
-            id="saveIndicator"
+            class="pick-stamp save"
+            id="saveStamp"
           >
-            ♥ SAVE
+            SAVE
           </div>
 
-          <div class="match-inner">
-            <span class="match-score">
-              ${place.score}% MATCH
-            </span>
+          <span class="pick-tag">
+            ${p.score}% MATCH
+          </span>
 
-            ${place.exact
-              ? '<span class="pgp-tag">MATCHES SELECTED PREFERENCES</span>'
-              : '<span class="pgp-tag">CLOSEST ALTERNATIVE</span>'}
+          ${p.hiddenGem
+            ? '<span class="pick-tag">HIDDEN GEM</span>'
+            : ""}
 
-            <h2>${escapeHTML(place.name)}</h2>
+          <h2>${e(p.name)}</h2>
 
-            <p>${escapeHTML(place.description)}</p>
+          <p>${e(p.description)}</p>
 
-            ${place.hiddenGem
-              ? '<span class="pgp-tag">✳ HIDDEN GEM</span>'
+          <details>
+            <summary>WHY THIS PICK?</summary>
+
+            <p>
+              ${e(
+                p.good.join("; ") ||
+                "Based on your selected preferences"
+              )}
+            </p>
+
+            ${p.bad.length
+              ? `
+                <p class="pick-warning">
+                  Check: ${e(p.bad.join("; "))}
+                </p>
+              `
               : ""}
+          </details>
 
-            <details class="match-explain">
-              <summary>WHY THIS PICK? ↗</summary>
+          <div class="pick-row">
+            <button
+              class="pick-btn alt"
+              data-detail="${e(p.id)}"
+            >
+              DETAILS ${icon("up")}
+            </button>
 
-              ${place.reasons.length
-                ? `
-                  <p>
-                    <strong>Matches:</strong><br>
-                    ${place.reasons.map(escapeHTML).join("<br>")}
-                  </p>
-                `
-                : ""}
-
-              ${place.notes.length
-                ? `
-                  <p>
-                    <strong>Important differences:</strong><br>
-                    ${place.notes.map(escapeHTML).join("<br>")}
-                  </p>
-                `
-                : ""}
-
-              <p>
-                Scores are based on questionnaire preferences,
-                not ratings or live availability.
-              </p>
-            </details>
-
-            <div class="pgp-actions">
-              <button
-                class="pgp-btn pgp-secondary"
-                data-detail="${escapeHTML(place.id)}"
-              >
-                DETAILS ↗
-              </button>
-
-              <a
-                class="pgp-btn pgp-secondary"
-                href="${mapsURL(place)}"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                MAPS ↗
-              </a>
-            </div>
+            <a
+              class="pick-btn alt"
+              href="${maps(p)}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              MAPS ${icon("up")}
+            </a>
           </div>
         </article>
 
-        <div class="match-actions">
-          <button
-            class="pgp-btn pgp-secondary"
-            id="skipPick"
-          >
-            ✕ SKIP
-          </button>
-
-          <button
-            class="pgp-btn"
-            id="savePick"
-          >
-            ♥ SAVE
-          </button>
-
-          <button
-            class="pgp-btn pgp-secondary"
-            id="undoPick"
-            ${state.history.length === 0 ? "disabled" : ""}
-          >
-            ↶ UNDO
-          </button>
+        <div class="pick-actions">
+          ${btn(icon("x") + " SKIP", "skip", "alt")}
+          ${btn(icon("heart") + " SAVE", "save")}
+          ${btn(icon("undo") + " UNDO", "undo", "alt")}
         </div>
 
-        <p class="pgp-disclaimer" style="text-align:center">
-          Drag the card left or right.
-          You can also use the buttons.
+        <div style="text-align:center">
+          ${btn(
+            "DONE? VIEW MY SHORTLIST (" +
+            state.liked.length + ")",
+            "finish",
+            "alt"
+          )}
+        </div>
+
+        <p
+          class="pick-muted"
+          style="text-align:center"
+        >
+          Drag left to skip or right to save.
+          Buttons work too.
         </p>
       </div>
     `;
   }
 
-  // --------------------------------------------------
-  // 11. SWIPE ANIMATIONS
-  // --------------------------------------------------
+  // RESULTS PAGE
 
-  function animateSwipe(direction) {
+  function render() {
+    const list = state.view === "list";
+
+    shell(`
+      <button class="pick-back" id="edit">
+        ${icon("left")} CHANGE ANSWERS
+      </button>
+
+      <div class="pick-kicker">
+        PGPR PICKS / DISCOVER
+      </div>
+
+      <h1 class="pick-title">
+        YOUR PICKS ARE IN.
+      </h1>
+
+      <p class="pick-lead">
+        Explore recommendations based on your preferences.
+        Save the places you like, then decide where to go.
+      </p>
+
+      <div class="pick-row">
+        ${btn(
+          "SWIPE MODE",
+          "swipeView",
+          list ? "alt" : ""
+        )}
+
+        ${btn(
+          "EXPLORE ALL PICKS",
+          "listView",
+          list ? "" : "alt"
+        )}
+
+        ${btn(
+          "MY SHORTLIST (" + state.liked.length + ")",
+          "shortlist",
+          "alt"
+        )}
+      </div>
+
+      ${list
+        ? `
+          <div class="pick-grid">
+            ${state.ranked.map(resultCard).join("")}
+          </div>
+        `
+        : swipeHTML()}
+
+      <p class="pick-muted">
+        Scores reflect questionnaire preferences,
+        not reviews or live availability.
+        Verify opening hours, prices, dietary needs
+        and access before visiting.
+      </p>
+    `);
+
+    $("#edit").onclick = () => {
+      state.step = 0;
+      quiz();
+    };
+
+    $("#swipeView").onclick = () => {
+      state.view = "swipe";
+      render();
+    };
+
+    $("#listView").onclick = () => {
+      state.view = "list";
+      render();
+    };
+
+    $("#shortlist").onclick = finalPage;
+
+    document.querySelectorAll("[data-detail]").forEach(b => {
+      b.onclick = () =>
+        detail(b.dataset.detail, "results");
+    });
+
+    document.querySelectorAll('[id^="detail-"]').forEach(b => {
+      b.onclick = () =>
+        detail(b.id.slice(7), "results");
+    });
+
+    document.querySelectorAll("[data-add]").forEach(b => {
+      b.onclick = () => {
+        const id = b.dataset.add;
+
+        state.liked = state.liked.includes(id)
+          ? state.liked.filter(x => x !== id)
+          : [...state.liked, id];
+
+        render();
+      };
+    });
+
+    if (list) return;
+
+    if (!current()) {
+      $("#finish").onclick = finalPage;
+      $("#more").onclick = nextBatch;
+      return;
+    }
+
+    $("#skip").onclick = () => swipe(false);
+    $("#save").onclick = () => swipe(true);
+    $("#undo").onclick = undo;
+    $("#finish").onclick = finalPage;
+
+    $("#undo").disabled = !state.history.length;
+
+    drag();
+  }
+
+  // ANIMATED SWIPING
+
+  function swipe(keep) {
     if (state.busy) return;
 
-    const place = state.results[state.swipeIndex];
-    const card = $("#swipeCard");
+    const p = current();
+    const el = $("#swipeCard");
 
-    if (!place || !card) return;
+    if (!p || !el) return;
 
     state.busy = true;
 
-    const keep = direction === "right";
-    const multiplier = keep ? 1 : -1;
+    const direction = keep ? 1 : -1;
+    const stamp = $(
+      keep ? "#saveStamp" : "#passStamp"
+    );
 
-    card.style.transition =
-      "transform 320ms cubic-bezier(.22,.61,.36,1), opacity 320ms ease";
+    stamp.style.opacity = "1";
 
-    card.style.transform =
-      `translate3d(${multiplier * (window.innerWidth + 350)}px, -35px, 0) rotate(${multiplier * 23}deg)`;
+    el.style.transition =
+      "transform 300ms ease, opacity 300ms ease";
 
-    card.style.opacity = "0";
+    el.style.transform = `
+      translateX(${direction * (window.innerWidth + 400)}px)
+      rotate(${direction * 23}deg)
+    `;
 
-    const indicator = keep
-      ? $("#saveIndicator")
-      : $("#skipIndicator");
-
-    if (indicator) {
-      indicator.style.opacity = "1";
-    }
+    el.style.opacity = "0";
 
     setTimeout(() => {
-      if (keep) {
-        setSaved(place.id, true);
-      }
-
       state.history.push({
-        index: state.swipeIndex,
-        id: place.id,
-        previousSaved: saved.has(place.id) && !keep
+        index: state.index,
+        id: p.id,
+        wasLiked: state.liked.includes(p.id)
       });
 
-      state.swipeIndex++;
+      if (keep && !state.liked.includes(p.id)) {
+        state.liked.push(p.id);
+      }
+
+      state.index++;
       state.busy = false;
 
-      renderResults();
+      render();
 
       if (keep) {
-        toast("Saved to your picks ♡");
+        toast("Added to your shortlist");
       }
-    }, 320);
+    }, 300);
   }
 
-  function undoSwipe() {
+  function undo() {
     if (state.busy) return;
 
-    const previous = state.history.pop();
+    const last = state.history.pop();
+    if (!last) return;
 
-    if (!previous) return;
+    state.index = last.index;
 
-    state.swipeIndex = previous.index;
-
-    if (previous.previousSaved) {
-      setSaved(previous.id, true);
-    } else {
-      setSaved(previous.id, false);
+    if (!last.wasLiked) {
+      state.liked = state.liked.filter(
+        id => id !== last.id
+      );
     }
 
-    renderResults();
-    toast("Last swipe undone");
+    render();
   }
 
-  function enableDrag() {
-    const card = $("#swipeCard");
+  function drag() {
+    const el = $("#swipeCard");
+    if (!el) return;
 
-    if (!card) return;
+    let x = 0;
+    let y = 0;
+    let id = null;
+    let active = false;
 
-    let pointerId = null;
-    let startX = 0;
-    let startY = 0;
-    let dragging = false;
+    function reset() {
+      active = false;
+      id = null;
 
-    const skipIndicator = $("#skipIndicator");
-    const saveIndicator = $("#saveIndicator");
+      el.style.transition = "transform 200ms ease";
+      el.style.transform =
+        "translateX(0) rotate(0)";
 
-    function resetCard() {
-      card.style.transition =
-        "transform 260ms ease, opacity 260ms ease";
-
-      card.style.transform =
-        "translate3d(0,0,0) rotate(0deg)";
-
-      card.style.opacity = "1";
-
-      card.classList.remove("dragging");
-
-      skipIndicator.style.opacity = "0";
-      saveIndicator.style.opacity = "0";
+      $("#passStamp").style.opacity = "0";
+      $("#saveStamp").style.opacity = "0";
     }
 
-    card.addEventListener("pointerdown", event => {
-      if (state.busy) return;
-
+    el.addEventListener("pointerdown", event => {
       if (
+        state.busy ||
         event.target.closest(
-          "button, a, summary, details"
+          "button,a,details,summary"
         )
       ) {
         return;
       }
 
-      pointerId = event.pointerId;
-      startX = event.clientX;
-      startY = event.clientY;
-      dragging = true;
+      x = event.clientX;
+      y = event.clientY;
+      id = event.pointerId;
+      active = true;
 
-      card.classList.add("dragging");
-      card.style.transition = "none";
-
-      if (card.setPointerCapture) {
-        card.setPointerCapture(pointerId);
-      }
+      el.style.transition = "none";
+      el.setPointerCapture(id);
     });
 
-    card.addEventListener("pointermove", event => {
-      if (!dragging || event.pointerId !== pointerId) {
+    el.addEventListener("pointermove", event => {
+      if (
+        !active ||
+        event.pointerId !== id
+      ) {
         return;
       }
 
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
+      const dx = event.clientX - x;
+      const dy = event.clientY - y;
 
-      if (Math.abs(dy) > Math.abs(dx) * 1.5) {
+      if (
+        Math.abs(dy) > Math.abs(dx) * 1.5
+      ) {
         return;
       }
 
@@ -1494,383 +1358,410 @@
         Math.min(18, dx / 18)
       );
 
-      card.style.transform =
-        `translate3d(${dx}px, ${Math.min(Math.abs(dx) / 8, 20)}px, 0) rotate(${rotation}deg)`;
+      el.style.transform = `
+        translateX(${dx}px)
+        rotate(${rotation}deg)
+      `;
 
-      if (dx > 15) {
-        saveIndicator.style.opacity =
-          Math.min(1, dx / 110);
+      $("#passStamp").style.opacity =
+        dx < -15
+          ? Math.min(1, -dx / 100)
+          : 0;
 
-        skipIndicator.style.opacity = "0";
-      } else if (dx < -15) {
-        skipIndicator.style.opacity =
-          Math.min(1, Math.abs(dx) / 110);
-
-        saveIndicator.style.opacity = "0";
-      } else {
-        skipIndicator.style.opacity = "0";
-        saveIndicator.style.opacity = "0";
-      }
+      $("#saveStamp").style.opacity =
+        dx > 15
+          ? Math.min(1, dx / 100)
+          : 0;
     });
 
-    card.addEventListener("pointerup", event => {
-      if (!dragging || event.pointerId !== pointerId) {
+    el.addEventListener("pointerup", event => {
+      if (
+        !active ||
+        event.pointerId !== id
+      ) {
         return;
       }
 
-      dragging = false;
-      card.classList.remove("dragging");
+      const dx = event.clientX - x;
+      const dy = event.clientY - y;
 
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
-
-      pointerId = null;
+      active = false;
+      id = null;
 
       if (
-        Math.abs(dx) >= 90 &&
+        Math.abs(dx) > 90 &&
         Math.abs(dx) > Math.abs(dy) * 1.2
       ) {
-        animateSwipe(dx > 0 ? "right" : "left");
+        swipe(dx > 0);
       } else {
-        resetCard();
+        reset();
       }
     });
 
-    card.addEventListener("pointercancel", () => {
-      dragging = false;
-      pointerId = null;
-      resetCard();
-    });
+    el.addEventListener("pointercancel", reset);
   }
 
-  // --------------------------------------------------
-  // 12. RESULTS PAGE
-  // --------------------------------------------------
+  // DISCOVER MORE
 
-  function results() {
-    state.results = rankPlaces();
-    state.view = "swipe";
-    state.swipeIndex = 0;
+  function nextBatch() {
+    const next = state.start + 5;
+
+    if (next >= state.ranked.length) {
+      toast(
+        "Try changing your preferences to discover different places"
+      );
+      finalPage();
+      return;
+    }
+
+    state.start = next;
+    state.index = 0;
     state.history = [];
-    state.busy = false;
+    state.view = "swipe";
 
-    renderResults();
+    render();
   }
 
-  function renderResults() {
-    const listMode = state.view === "list";
-    const results = state.results;
+  // FINAL SHORTLIST
+
+  function finalPage() {
+    const liked = shortlist();
+    const best = liked[0];
 
     shell(`
-      <button class="pgp-back" id="editAnswers">
-        ← CHANGE MY ANSWERS
+      <button class="pick-back" id="back">
+        ${icon("left")} BACK TO DISCOVERY
       </button>
 
-      <div class="pgp-kicker">
+      <div class="pick-kicker">
         PGPR PICKS / YOUR SHORTLIST
       </div>
 
-      <h1 class="pgp-title">
-        YOUR PICKS ARE IN.
+      <h1 class="pick-title">
+        ${liked.length
+          ? "YOUR SHORTLIST."
+          : "NOTHING CAUGHT YOUR EYE?"}
       </h1>
 
-      <p class="pgp-lead">
-        Places selected based on your questionnaire answers.
-        Swipe through them or view the full list.
-      </p>
-
-      <div class="match-view-toggle">
-        <button
-          class="pgp-btn pgp-secondary"
-          id="swipeView"
-          aria-pressed="${!listMode}"
-        >
-          ↔ SWIPE MODE
-        </button>
-
-        <button
-          class="pgp-btn pgp-secondary"
-          id="listView"
-          aria-pressed="${listMode}"
-        >
-          ☷ VIEW ALL
-        </button>
-      </div>
-
-      ${listMode
+      ${liked.length
         ? `
-          <div class="pgp-grid">
-            ${results.map(resultCard).join("")}
-          </div>
-        `
-        : swipeCardHTML()}
+          <p class="pick-lead">
+            You selected ${liked.length}
+            place${liked.length === 1 ? "" : "s"}.
+            Here is your highest-scoring pick.
+          </p>
 
-      <p class="pgp-disclaimer">
-        Match percentages indicate preference compatibility,
-        not ratings or guaranteed availability.
-        Please verify venue hours, prices, dietary suitability,
-        and study-space access before visiting.
-      </p>
+          <section class="pick-feature">
+            <div class="pick-kicker">
+              TOP SAVED MATCH
+            </div>
+
+            <h2>${e(best.name)}</h2>
+
+            <span class="pick-tag">
+              ${best.score}% MATCH
+            </span>
+
+            <p>${e(best.description)}</p>
+
+            <div class="pick-row">
+              <a
+                class="pick-btn"
+                href="${maps(best)}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                OPEN MAPS ${icon("up")}
+              </a>
+
+              <button
+                class="pick-btn alt"
+                data-detail="${e(best.id)}"
+              >
+                DETAILS
+              </button>
+            </div>
+          </section>
+
+          ${liked.slice(1).map(resultCard).join("")}
+        `
+        : `
+          <p class="pick-lead">
+            You can discover more or explore
+            the full list.
+          </p>
+
+          ${state.ranked[0]
+            ? `
+              <section class="pick-feature">
+                <div class="pick-kicker">
+                  HIGHEST-RANKED SUGGESTION
+                </div>
+
+                <h2>
+                  ${e(state.ranked[0].name)}
+                </h2>
+
+                <p>
+                  ${e(state.ranked[0].description)}
+                </p>
+
+                <button
+                  class="pick-btn alt"
+                  data-detail="${e(state.ranked[0].id)}"
+                >
+                  DETAILS
+                </button>
+              </section>
+            `
+            : ""}
+        `}
+
+      <div class="pick-row">
+        ${btn("DISCOVER MORE", "more")}
+        ${btn("EXPLORE ALL PICKS", "browse", "alt")}
+        ${btn("SHARE SHORTLIST", "share", "alt")}
+      </div>
     `);
 
-    $("#editAnswers").onclick = () => {
-      state.step = 0;
-      quiz();
-    };
+    $("#back").onclick = render;
+    $("#more").onclick = nextBatch;
 
-    $("#swipeView").onclick = () => {
-      state.view = "swipe";
-      renderResults();
-    };
-
-    $("#listView").onclick = () => {
+    $("#browse").onclick = () => {
       state.view = "list";
-      renderResults();
+      render();
     };
 
-    if (listMode) {
-      bindResultCards();
-      return;
-    }
+    $("#share").onclick = () =>
+      share(
+        liked.map(
+          p => p.name + ": " + maps(p)
+        ).join("\n")
+      );
 
-    const current = results[state.swipeIndex];
-
-    if (!current) {
-      $("#viewSaved").onclick = savedPage;
-
-      $("#restart").onclick = () => {
-        state.swipeIndex = 0;
-        state.history = [];
-        renderResults();
-      };
-
-      return;
-    }
-
-    document.querySelectorAll("[data-detail]").forEach(button => {
-      button.onclick = () => {
-        state.detailFrom = "results";
-        detail(button.dataset.detail);
-      };
+    document.querySelectorAll("[data-detail]").forEach(b => {
+      b.onclick = () =>
+        detail(b.dataset.detail, "final");
     });
 
-    $("#skipPick").onclick = () => animateSwipe("left");
-    $("#savePick").onclick = () => animateSwipe("right");
-    $("#undoPick").onclick = undoSwipe;
+    document.querySelectorAll("[data-add]").forEach(b => {
+      b.onclick = () => {
+        const id = b.dataset.add;
 
-    enableDrag();
+        state.liked = state.liked.includes(id)
+          ? state.liked.filter(x => x !== id)
+          : [...state.liked, id];
+
+        finalPage();
+      };
+    });
   }
 
-  // --------------------------------------------------
-  // 13. PLACE DETAILS
-  // --------------------------------------------------
+  // SHARING
 
-  function detail(id) {
-    const place = places.find(item => item.id === id);
+  function share(text) {
+    if (!text) {
+      toast("No places selected yet");
+      return;
+    }
 
-    if (!place) return;
+    if (navigator.share) {
+      navigator.share({
+        title: "PGPR Picks",
+        text
+      }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text)
+        .then(() => toast("Copied to clipboard"))
+        .catch(() => toast("Copy unavailable"));
+    } else {
+      toast("Sharing unavailable");
+    }
+  }
 
-    const fromSaved = state.detailFrom === "saved";
+  // PLACE DETAILS
+
+  function detail(id, origin) {
+    const p = places.find(
+      x => String(x.id) === String(id)
+    );
+
+    if (!p) return;
+
+    state.detailReturn = origin;
 
     shell(`
-      <button class="pgp-back" id="backDetail">
-        ← BACK TO PICKS
+      <button class="pick-back" id="back">
+        ${icon("left")} BACK
       </button>
 
-      <div class="pgp-kicker">
-        THE PGPR EDIT / ${escapeHTML(place.category.toUpperCase())}
+      <div class="pick-kicker">
+        THE PGPR EDIT / ${e(p.category).toUpperCase()}
       </div>
 
-      <h1 class="pgp-title">
-        ${escapeHTML(place.name)}
+      <h1 class="pick-title">
+        ${e(p.name)}
       </h1>
 
-      <p class="pgp-lead">
-        ${escapeHTML(place.description)}
+      <p class="pick-lead">
+        ${e(p.description)}
       </p>
 
-      <div class="pgp-meta">
-        <div>
+      <section class="pick-panel">
+        <p>
           <strong>LOCATION</strong>
-          <p>${escapeHTML(place.location)}</p>
-        </div>
+          <br>
+          ${e(p.location)}
+        </p>
 
-        <div>
-          <strong>ACCESS / HOURS</strong>
-          <p>
-            ${escapeHTML(
-              place.accessDetails ||
-              "Check the venue before visiting"
-            )}
-          </p>
-        </div>
-      </div>
+        <p>
+          <strong>ACCESS AND HOURS</strong>
+          <br>
+          ${e(p.accessDetails || "Check with the venue")}
+        </p>
 
-      <p>
-        ${escapeHTML(
-          place.note ||
-          "Please verify current details before leaving."
-        )}
-      </p>
+        <p>
+          ${e(
+            p.note ||
+            "Verify details before visiting."
+          )}
+        </p>
+      </section>
 
-      <div class="pgp-actions">
+      <div class="pick-row">
         <a
-          class="pgp-btn"
-          href="${mapsURL(place)}"
+          class="pick-btn"
+          href="${maps(p)}"
           target="_blank"
           rel="noopener noreferrer"
         >
-          PHOTOS & GOOGLE MAPS ↗
+          GOOGLE MAPS ${icon("up")}
         </a>
 
-        ${place.source
+        ${p.source
           ? `
             <a
-              class="pgp-btn pgp-secondary"
-              href="${escapeHTML(place.source)}"
+              class="pick-btn alt"
+              href="${e(p.source)}"
               target="_blank"
               rel="noopener noreferrer"
             >
-              REFERENCE ↗
+              REFERENCE ${icon("up")}
             </a>
           `
           : ""}
 
-        <button
-          class="pgp-btn pgp-secondary"
-          id="detailSave"
-        >
-          ${saved.has(id) ? "♥ SAVED" : "♡ SAVE"}
-        </button>
-
-        <button
-          class="pgp-btn pgp-secondary"
-          id="detailShare"
-        >
-          SHARE ↗
-        </button>
+        ${btn(
+          saved.has(p.id)
+            ? "SAVED"
+            : "SAVE PLACE",
+          "savePlace",
+          "alt"
+        )}
       </div>
     `);
 
-    $("#backDetail").onclick = () => {
-      if (fromSaved) {
-        savedPage();
+    $("#back").onclick =
+      origin === "saved"
+        ? savedPage
+        : origin === "final"
+          ? finalPage
+          : render;
+
+    $("#savePlace").onclick = () => {
+      if (saved.has(p.id)) {
+        saved.delete(p.id);
       } else {
-        renderResults();
+        saved.add(p.id);
       }
+
+      sync();
+
+      $("#savePlace").textContent =
+        saved.has(p.id)
+          ? "SAVED"
+          : "SAVE PLACE";
     };
-
-    $("#detailSave").onclick = () => {
-      const isSaved = toggleSaved(id);
-
-      $("#detailSave").textContent = isSaved
-        ? "♥ SAVED"
-        : "♡ SAVE";
-
-      toast(
-        isSaved
-          ? "Saved to your picks ♡"
-          : "Removed from saved picks"
-      );
-    };
-
-    $("#detailShare").onclick = () => sharePlace(place);
   }
 
-  // --------------------------------------------------
-  // 14. SAVED PLACES
-  // --------------------------------------------------
+  // SAVED PLACES
 
   function savedPage() {
-    state.category = null;
-
-    const list = places.filter(place => saved.has(place.id));
+    const arr = places.filter(
+      p => saved.has(p.id)
+    );
 
     shell(`
-      <button class="pgp-back" id="backHome">
-        ← HOME
+      <button class="pick-back" id="back">
+        ${icon("left")} HOME
       </button>
 
-      <h1 class="pgp-title">
-        SAVED PICKS ♡
+      <h1 class="pick-title">
+        SAVED PLACES.
       </h1>
 
-      ${list.length
+      ${arr.length
         ? `
-          <div class="pgp-grid">
-            ${list.map(place => `
-              <article class="pgp-card">
-                <div class="pgp-card-body">
-                  <h3>${escapeHTML(place.name)}</h3>
+          <div class="pick-grid">
+            ${arr.map(p => `
+              <article class="pick-result">
+                <h3>${e(p.name)}</h3>
+                <p>${e(p.description)}</p>
 
-                  <p>${escapeHTML(place.description)}</p>
+                <div class="pick-row">
+                  <button
+                    class="pick-btn"
+                    data-detail="${e(p.id)}"
+                  >
+                    DETAILS
+                  </button>
 
-                  <div class="pgp-actions">
-                    <button
-                      class="pgp-btn"
-                      data-detail="${escapeHTML(place.id)}"
-                    >
-                      DETAILS ↗
-                    </button>
-
-                    <button
-                      class="pgp-btn pgp-secondary"
-                      data-remove="${escapeHTML(place.id)}"
-                    >
-                      ♥ REMOVE
-                    </button>
-                  </div>
+                  <button
+                    class="pick-btn alt"
+                    data-remove="${e(p.id)}"
+                  >
+                    REMOVE
+                  </button>
                 </div>
               </article>
             `).join("")}
           </div>
         `
         : `
-          <div class="pgp-empty">
-            <h2>NOTHING SAVED YET.</h2>
-            <p>
-              Explore some places and save the ones you like.
-            </p>
-
-            <button class="pgp-btn" id="explore">
-              EXPLORE PICKS ↗
-            </button>
-          </div>
+          <p>No saved places yet.</p>
         `}
     `);
 
-    $("#backHome").onclick = home;
+    $("#back").onclick = home;
 
-    const explore = $("#explore");
-
-    if (explore) explore.onclick = home;
-
-    document.querySelectorAll("[data-detail]").forEach(button => {
-      button.onclick = () => {
-        state.detailFrom = "saved";
-        detail(button.dataset.detail);
-      };
+    document.querySelectorAll("[data-detail]").forEach(b => {
+      b.onclick = () =>
+        detail(b.dataset.detail, "saved");
     });
 
-    document.querySelectorAll("[data-remove]").forEach(button => {
-      button.onclick = () => {
-        setSaved(button.dataset.remove, false);
+    document.querySelectorAll("[data-remove]").forEach(b => {
+      b.onclick = () => {
+        saved.delete(b.dataset.remove);
+        sync();
         savedPage();
       };
     });
   }
 
-  // --------------------------------------------------
-  // 15. INITIALISE
-  // --------------------------------------------------
+  // INITIALISE
 
   const homeLink = $("#homeLink");
-  const savedButton = $("#savedBtn");
+  const savedBtn = $("#savedBtn");
 
-  if (homeLink) homeLink.onclick = home;
-  if (savedButton) savedButton.onclick = savedPage;
+  if (homeLink) {
+    homeLink.onclick = home;
+  }
 
-  saveSync();
+  if (savedBtn) {
+    savedBtn.onclick = savedPage;
+  }
+
+  sync();
   home();
 
 })();
