@@ -4,3 +4,17 @@
 
 /* V7 responsive typography and truthful fallback notices */
 .hero{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr)}.hero h1{font-size:clamp(45px,5.8vw,78px);line-height:.98;letter-spacing:-.065em;overflow-wrap:normal}.hero-copy{min-width:0}.hero-photo{min-width:0}.match-note{background:#f9e7b0;border-left:3px solid #ef643c;padding:9px 11px;font-size:12px;line-height:1.45;font-weight:700}.category-card img,.place-img img,.hero-photo img{display:block;object-fit:cover}.category-card{isolation:isolate}@media(max-width:720px){.hero{grid-template-columns:minmax(0,1fr)}.hero h1{font-size:clamp(44px,10.7vw,72px);letter-spacing:-.075em}.hero-photo{min-height:230px}.category-card{min-height:240px}.category-text strong{font-size:32px}}
+
+/* V9: photos only on the homepage and category cards. No placeholder venue images. */
+.pgp-card.no-photo-card{display:block;min-height:0;border:2px solid #172b50;box-shadow:4px 5px 0 #172b50;border-radius:0}
+.pgp-card.no-photo-card .pgp-card-body{padding:23px;min-height:290px}
+.no-photo-card.eat{background:#f6d7bb}.no-photo-card.focus{background:#dce9bc}.no-photo-card.escape{background:#f2d4df}
+.match-card.no-photo-card .match-inner{padding:clamp(22px,5vw,38px);min-height:360px}
+.match-card.no-photo-card h2{font-size:clamp(32px,6vw,48px);margin:24px 0 16px}
+.match-stage{max-width:580px}
+.match-explain{border-top:1px solid #172b5040;padding-top:15px;margin-top:22px}
+.match-explain summary{cursor:pointer;font-weight:800}
+.pgp-card.no-photo-card .pgp-tag{background:#fff8e9}
+.pgp-hero-photo{object-position:center 58%}
+.pgp-tile img{filter:saturate(.92)}
+@media(max-width:720px){.pgp-card.no-photo-card .pgp-card-body{min-height:0}.match-card.no-photo-card .match-inner{min-height:340px}}
