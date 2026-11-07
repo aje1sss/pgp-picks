@@ -1,3 +1,5 @@
+const $ = (selector) => document.querySelector(selector);
+
 // Self-contained editorial placeholder artwork. Illustrative, not venue photography.
 const IMAGES = Object.freeze({
   hero: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=1100&q=82",
